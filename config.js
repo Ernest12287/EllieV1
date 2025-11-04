@@ -10,12 +10,7 @@ const config = {
         preffix: process.env.PREFFIX || ".",
         welcomeImage: process.env.WELCOME_IMAGE || "./assets/welcome.jpg",
     },
-    apikeys: {
-        weather: process.env.WEATHER_API_KEY || "4eae741def192d7170adcc74d60d9ceb",
-        groq: process.env.GROQ_API_KEY || "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",
-        gemini: process.env.GEMINI_API_KEY || "AIzaSyBLt8nENoQsgm82t9wdrXl1xTMswG8TMH0",
-        deepseek: process.env.DEEPSEEK_API_KEY || "sk-9bc9de8af1f2484888989c4c5523bf4a",
-    },
+    // apikeys: API keys are now exclusively loaded from process.env in the auth section or where they are used.
     auth: {
         // MODIFIED: Support both folder and file-based authentication
         folder: process.env.CONFIG_FOLDER || "Elliev1",
