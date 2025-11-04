@@ -1,0 +1,55 @@
+// encrypt.js
+import config from '../config.js';
+import logging from '../logger.js';
+
+export default {
+    name: 'encrypt',
+    aliases: ['obfuscate', 'enc'],
+    description: 'Obfuscate JavaScript code (v1)',
+    usage: '.encrypt <code>',
+    category: 'Developer',
+    
+    async execute(sock, message, args) {
+        const sender = message.key.remoteJid;
+        
+        if (args.length < 1) {
+            return await sock.sendMessage(sender, { 
+                text: `╭━━━『 🔒 CODE OBFUSCATOR 』\n┃\n┃ ❌ Usage: ${config.bot.preffix}encrypt <code>\n┃\n┃ 💡 Example:\n┃ ${config.bot.preffix}encrypt console.log("Hi")\n┃\n╰━━━━━━━━━━━━━━━⬣`
+            });
+        }
+
+        try {
+            await sock.sendMessage(sender, { 
+                text: '🔒 Obfuscating code...' 
+            });
+
+            const code = args.join(' ');
+            const apiUrl = `https://api.giftedtech.co.ke/api/tools/encrypt?apikey=gifted&code=${encodeURIComponent(code)}`;
+            
+            const response = await fetch(apiUrl);
+            const data = await response.json();
+
+            if (data.success && data.encrypted_code) {
+                await sock.sendMessage(sender, { 
+                    text: `╭━━━『 🔒 OBFUSCATED CODE 』\n┃\n┃ ✅ Code encrypted!\n┃\n╰━━━━━━━━━━━━━━━⬣`
+                });
+                
+                await sock.sendMessage(sender, { 
+                    text: data.encrypted_code 
+                });
+                
+                logging.success(`[ENCRYPT] Code obfuscated`);
+            } else {
+                await sock.sendMessage(sender, { 
+                    text: '❌ Failed to obfuscate code!' 
+                });
+            }
+
+        } catch (error) {
+            logging.error(`[ENCRYPT] Error: ${error.message}`);
+            await sock.sendMessage(sender, { 
+                text: `❌ Error obfuscating!` 
+            });
+        }
+    }
+};

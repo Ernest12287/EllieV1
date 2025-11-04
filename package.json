@@ -1,0 +1,45 @@
+{
+  "name": "elliev1",
+  "version": "1.0.0",
+  "description": "Ellie WhatsApp Bot - A powerful and elegant WhatsApp bot",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js",
+    "pm2:start": "pm2 start index.js --name ellie",
+    "pm2:stop": "pm2 stop ellie",
+    "pm2:restart": "pm2 restart ellie",
+    "pm2:delete": "pm2 delete ellie",
+    "pm2:logs": "pm2 logs ellie",
+    "pm2:monit": "pm2 monit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ernest12287/EllieV1.git"
+  },
+  "keywords": [
+    "whatsapp",
+    "bot",
+    "@whiskeysockets/baileys",
+    "whatsapp-bot",
+    "ellie"
+  ],
+  "author": "Pease Ernest <peaseernest8@gmail.com>",
+  "license": "ISC",
+  "dependencies": {
+    "@hapi/boom": "^10.0.1",
+    "@whiskeysockets/baileys": "npm:baileys@6.7.20",
+    "axios": "^1.6.0",
+    "dotenv": "^17.2.3",
+    "ernest-logger": "^1.1.0",
+    "jimp": "^1.6.0",
+    "link-preview-js": "^3.1.0",
+    "node-fetch": "^3.3.2",
+    "pm2": "^6.0.13",
+    "qrcode": "^1.5.4",
+    "sharp": "^0.34.4",
+    "wa-sticker-formatter": "^4.4.4",
+    "yt-dlp-wrap": "^2.3.12"
+  }
+}

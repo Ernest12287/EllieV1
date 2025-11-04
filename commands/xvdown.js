@@ -1,0 +1,102 @@
+import config from '../config.js';
+import logging from '../logger.js';
+import fetch from 'node-fetch';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+export default {
+    name: 'xvdown',
+    description: 'Download and send videos from XVideos using GiftedTech API',
+    usage: '.xvdown <xvideos-url>',
+    category: 'Downloader',
+
+    async execute(sock, message, args) {
+        const sender = message.key.remoteJid;
+        const url = args[0];
+
+        if (!url) {
+            await sock.sendMessage(sender, { text: '❌ Please provide an XVideos URL.\nExample: `.xvdown https://www.xvideos.com/video...`' });
+            return;
+        }
+
+        try {
+            logging.info(`Fetching video data for: ${url}`);
+
+            const apiUrl = `https://api.giftedtech.co.ke/api/download/xvideosdl?apikey=gifted&url=${encodeURIComponent(url)}`;
+            const response = await fetch(apiUrl);
+            const data = await response.json();
+
+            if (!data.success || !data.result) {
+                logging.error('Invalid API response from GiftedTech');
+                await sock.sendMessage(sender, { text: '⚠️ Failed to fetch video info. Try again later.' });
+                return;
+            }
+
+            const { title, views, likes, dislikes, size, thumbnail, download_url } = data.result;
+
+            // Parse the size value
+            const sizeValue = parseFloat(size);
+            const isMB = size.toLowerCase().includes('mb');
+            const sizeInMB = isMB ? sizeValue : sizeValue / 1024; // convert KB to MB if needed
+
+            const caption = `
+🎬 *${title}*
+👁️ Views: ${views}
+👍 Likes: ${likes}
+👎 Dislikes: ${dislikes}
+💾 Size: ${size}
+
+${sizeInMB <= 70 ? '📥 Sending video...' : '⚠️ File too large, sending link instead:'}
+${sizeInMB > 70 ? download_url : ''}
+            `.trim();
+
+            if (sizeInMB > 70) {
+                // Big file: send info + link only
+                await sock.sendMessage(sender, {
+                    image: { url: thumbnail },
+                    caption
+                });
+                logging.warn(`Skipped download — file too large (${sizeInMB.toFixed(2)} MB).`);
+                return;
+            }
+
+            // Small enough: download and send video
+            const tempFolder = path.join(__dirname, '../temp');
+            if (!fs.existsSync(tempFolder)) fs.mkdirSync(tempFolder, { recursive: true });
+
+            const fileName = `${Date.now()}_xv.mp4`;
+            const filePath = path.join(tempFolder, fileName);
+
+            logging.info(`Downloading video (${sizeInMB.toFixed(2)} MB): ${title}`);
+
+            const videoRes = await fetch(download_url);
+            const fileStream = fs.createWriteStream(filePath);
+            await new Promise((resolve, reject) => {
+                videoRes.body.pipe(fileStream);
+                videoRes.body.on('error', reject);
+                fileStream.on('finish', resolve);
+            });
+
+            logging.success(`Download complete: ${fileName}`);
+
+            await sock.sendMessage(sender, {
+                video: fs.readFileSync(filePath),
+                caption
+            });
+
+            logging.success(`Video sent successfully to ${sender}`);
+
+            // Clean up
+            fs.unlinkSync(filePath);
+            logging.info('Temporary file deleted.');
+
+        } catch (err) {
+            logging.error(err);
+            await sock.sendMessage(sender, { text: '❌ Something went wrong while processing your request.' });
+        }
+    }
+};

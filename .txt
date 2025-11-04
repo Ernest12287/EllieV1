@@ -1,0 +1,174 @@
+
+## 📋 REMAINING COMMANDS - Quick Template
+
+All these follow the EXACT same pattern. Just copy any AI command and replace:
+- API endpoint URL
+- Command name and aliases
+- Description and emojis
+
+### 🔧 UTILITY TOOLS:
+
+#### **fancy.js** & **fancy2.js**
+```javascript
+// API: https://api.giftedtech.co.ke/api/tools/fancy?apikey=gifted&text=YOUR_TEXT
+// Response: { results: [{ name: 'style', result: 'styled_text' }] }
+// Show all styles in nice format
+```
+
+#### **ttp.js** (Text to Sticker)
+```javascript
+// API: https://api.giftedtech.co.ke/api/tools/ttp?apikey=gifted&query=TEXT
+// Response: { image_url: "url" }
+// Send as sticker using sock.sendMessage with sticker type
+```
+
+#### **ssweb.js** (Screenshot Website)
+```javascript
+// API: https://api.giftedtech.co.ke/api/tools/ssweb?apikey=gifted&url=WEBSITE_URL
+// Returns image directly - send as image
+```
+
+#### **web2zip.js**
+```javascript
+// API: https://api.giftedtech.co.ke/api/tools/web2zip?apikey=gifted&url=WEBSITE_URL
+// Response: { download_url: "url", mimetype: "application/zip" }
+// Send as document
+```
+
+#### **ebase.js** & **dbase.js** (Base64 Encode/Decode)
+```javascript
+// Encode: https://api.giftedtech.co.ke/api/tools/ebase?apikey=gifted&query=TEXT
+// Decode: (create dbase.js with decode endpoint if available)
+// Response: { result: "encoded_string" }
+```
+
+#### **ebinary.js** & **dbinary.js**
+```javascript
+// Encode: https://api.giftedtech.co.ke/api/tools/ebinary?apikey=gifted&query=TEXT
+// Decode: https://api.giftedtech.co.ke/api/tools/dbinary?apikey=gifted&query=BINARY
+// Response: { result: "result_string" }
+```
+
+#### **encrypt.js**, **encrypt2.js**, **encrypt3.js** (Obfuscators)
+```javascript
+// v1: https://api.giftedtech.co.ke/api/tools/encrypt?apikey=gifted&code=CODE
+// v2: https://api.giftedtech.co.ke/api/tools/encryptv2?apikey=gifted&code=CODE
+// v3: https://api.giftedtech.co.ke/api/tools/encryptv3?apikey=gifted&code=CODE
+// Response: { encrypted_code: "obfuscated_code" }
+```
+
+#### **remini.js** (Image Enhancement)
+```javascript
+// API: https://api.giftedtech.co.ke/api/tools/remini?apikey=gifted&url=IMAGE_URL
+// Response: { result: { image_url: "url", size: "size" } }
+```
+
+#### **topdf.js**
+```javascript
+// API: https://api.giftedtech.co.ke/api/tools/topdf?apikey=gifted&query=TEXT_OR_URL
+// Returns PDF file - send as document
+```
+
+### 🌐 SERVER/NETWORK TOOLS:
+
+#### **servercheck.js**
+```javascript
+// API: https://api.giftedtech.co.ke/api/tools/server-check?apikey=gifted&url=URL
+// Response: { result: { link, http_code, status } }
+```
+
+#### **httpheaders.js**
+```javascript
+// API: https://api.giftedtech.co.ke/api/tools/http-headers?apikey=gifted&url=URL
+// Response: { result: "headers_string" }
+```
+
+#### **dnscheck.js**
+```javascript
+// API: https://api.giftedtech.co.ke/api/tools/dns-check?apikey=gifted&domain=DOMAIN
+// Response: { result: { domain, records: [...] } }
+// Format records nicely
+```
+
+### 🎨 IMAGE TOOLS:
+
+#### **emojimix.js**
+```javascript
+// API: https://api.giftedtech.co.ke/api/tools/emojimix?apikey=gifted&emoji1=😂&emoji2=🙄
+// Returns image directly - send as sticker or image
+```
+
+#### **goodbye.js** (Welcome/Goodbye Image Generator)
+```javascript
+// API: https://api.giftedtech.co.ke/api/tools/goodbye?apikey=gifted&name=NAME&type=type1&profilePicUrl=URL
+// Returns image - send as image with caption
+```
+
+### 🤖 AI TOOLS (remaining):
+
+#### **wwdgpt.js** (Indonesian AI)
+```javascript
+// API: https://api.giftedtech.co.ke/api/ai/wwdgpt?apikey=gifted&q=QUESTION
+// Same pattern as other AI commands
+// Note: Responds in Indonesian language
+```
+
+---
+
+## 🎯 QUICK CREATION GUIDE:
+
+### For each command, follow this structure:
+
+```javascript
+import config from '../config.js';
+
+export default {
+  name: 'commandname',
+  aliases: ['alias1', 'alias2'],
+  description: 'Description! 🎯',
+  usage: '.command <args>',
+  category: 'Category',
+  async execute(sock, message, args) {
+    const sender = message.key.remoteJid;
+    
+    // 1. Check args
+    if (args.length < 1) {
+      return await sock.sendMessage(sender, { 
+        text: `Help message with usage examples`
+      }, { quoted: message });
+    }
+
+    // 2. Build API URL
+    const param = args.join(' ');
+    const apiUrl = `https://api.giftedtech.co.ke/api/.../...?apikey=gifted&param=${encodeURIComponent(param)}`;
+
+    try {
+      // 3. Send loading message
+      await sock.sendMessage(sender, { 
+        text: `⏳ Processing...`
+      }, { quoted: message });
+
+      // 4. Fetch API
+      const response = await fetch(apiUrl);
+      const data = await response.json();
+
+      // 5. Send result
+      if (data.success && data.result) {
+        // Format and send response
+        await sock.sendMessage(sender, { 
+          text: `Result: ${data.result}`
+        }, { quoted: message });
+      } else {
+        await sock.sendMessage(sender, { 
+          text: `❌ Failed!`
+        }, { quoted: message });
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      await sock.sendMessage(sender, { 
+        text: `❌ Error! ${error.message}`
+      }, { quoted: message });
+    }
+  }
+};
+```
