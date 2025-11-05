@@ -1,3 +1,9 @@
 node_modules
 .env
 package-lock.json
+index.js
+Handlers/channelhandlers.js
+Handlers/messagehandlers.js
+Handlers/normalMessageHandlers.js
+Handlers/statusbroadcasthandlers.js
+obfuscate.js
