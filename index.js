@@ -6,7 +6,6 @@ import makeWASocket, {
     makeCacheableSignalKeyStore
 } from '@whiskeysockets/baileys';
 import { Boom } from '@hapi/boom';
-import QRCode from 'qrcode';
 import logger from './logger.js';
 import { loadCommands } from './utils/commandloader.js';
 import handleMessages from './Handlers/messagehandler.js';
@@ -18,6 +17,26 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Function to decode base64 session to creds.json
+async function decodeBase64Session(base64String, targetPath) {
+    try {
+        // Decode base64 to UTF-8 JSON string
+        const decodedString = Buffer.from(base64String, 'base64').toString('utf8');
+        
+        // Verify it's valid JSON
+        const jsonData = JSON.parse(decodedString);
+        
+        // Write to file
+        fs.writeFileSync(targetPath, JSON.stringify(jsonData, null, 2), 'utf8');
+        
+        logger.success('Session decoded and saved successfully');
+        return true;
+    } catch (error) {
+        logger.error(`Failed to decode session: ${error.message}`);
+        return false;
+    }
+}
+
 // MODIFIED: Function to handle creds.json file authentication
 async function getAuthState() {
     if (config.auth.useCredsFile) {
@@ -25,9 +44,45 @@ async function getAuthState() {
         
         const credsPath = path.resolve(__dirname, config.auth.credsFilePath);
         
+        // Check if creds.json exists
         if (!fs.existsSync(credsPath)) {
             logger.error(`Creds file not found at: ${credsPath}`);
-            throw new Error('creds.json file not found. Please place it in the root directory.');
+            
+            // Check if there's a base64 session in environment variable
+            if (process.env.SESSION_ID) {
+                logger.info('Found SESSION_ID in environment, attempting to decode...');
+                
+                const decoded = await decodeBase64Session(process.env.SESSION_ID, credsPath);
+                
+                if (!decoded) {
+                    throw new Error('Failed to decode SESSION_ID. Please check the session string.');
+                }
+                
+                logger.success('Session decoded from SESSION_ID');
+            } else {
+                throw new Error('creds.json not found and no SESSION_ID provided. Please get a session from Ernest Session Generator.');
+            }
+        }
+
+        // Verify the creds.json is valid JSON
+        try {
+            const credsContent = fs.readFileSync(credsPath, 'utf8');
+            JSON.parse(credsContent);
+            logger.success('Creds file is valid JSON');
+        } catch (parseError) {
+            logger.error('Creds file is corrupted or invalid JSON');
+            
+            // Try to decode from SESSION_ID if available
+            if (process.env.SESSION_ID) {
+                logger.info('Attempting to restore from SESSION_ID...');
+                const decoded = await decodeBase64Session(process.env.SESSION_ID, credsPath);
+                
+                if (!decoded) {
+                    throw new Error('creds.json is invalid and SESSION_ID decode failed');
+                }
+            } else {
+                throw new Error('creds.json is corrupted. Please get a new session.');
+            }
         }
 
         // Create auth folder if it doesn't exist
@@ -38,7 +93,7 @@ async function getAuthState() {
 
         // Copy creds.json to auth folder
         const destPath = path.join(authFolder, 'creds.json');
-        if (!fs.existsSync(destPath)) {
+        if (!fs.existsSync(destPath) || fs.readFileSync(credsPath, 'utf8') !== fs.readFileSync(destPath, 'utf8')) {
             fs.copyFileSync(credsPath, destPath);
             logger.success('Creds file copied to auth folder');
         }
@@ -46,8 +101,11 @@ async function getAuthState() {
         // Use the auth folder with the creds.json file
         return await useMultiFileAuthState(authFolder);
     } else {
-        // Use standard folder-based authentication
-        logger.info('Using folder-based authentication...');
+        // Use standard folder-based authentication (QR code method - DISABLED)
+        logger.warn('QR code method is deprecated. Please use SESSION_ID method.');
+        logger.info('To use SESSION_ID: Set USE_CREDS_FILE=true and add SESSION_ID to .env');
+        
+        // Still allow it but warn user
         return await useMultiFileAuthState(config.auth.folder);
     }
 }
@@ -63,7 +121,7 @@ async function sendWelcomeMessage(sock, commands) {
             `• Total Commands: *${commandCount}*\n` +
             `• Version: *${config.bot.version}*\n` +
             `• Prefix: *${config.bot.preffix}*\n` +
-            `• Auth Method: *${config.auth.useCredsFile ? 'Creds File' : 'Folder'}*\n\n` +
+            `• Auth Method: *${config.auth.useCredsFile ? 'Session ID' : 'Folder'}*\n\n` +
             `⚠️ *Note:* This bot is connected using Ernest Tech House Session Generator.\n` +
             `All commands are working fully and reliably! ✅\n\n` +
             `🔗 *Connect With Us:*\n` +
@@ -119,7 +177,7 @@ async function sendWelcomeMessage(sock, commands) {
 
 async function connectToWhatsApp() {
     try {
-        // MODIFIED: Get auth state based on configuration
+        // Get auth state based on configuration
         const { state, saveCreds } = await getAuthState();
         const { version } = await fetchLatestBaileysVersion();
         logger.info(`Connecting with @whiskeysockets/baileys version: ${version.join('.')}`);
@@ -132,21 +190,13 @@ async function connectToWhatsApp() {
             logger: logger,
             version: version,
             browser: Browsers.macOS('Desktop'),
-            printQRInTerminal: false,
+            printQRInTerminal: false, // QR code disabled
         });
 
         sock.ev.on('creds.update', saveCreds);
 
         sock.ev.on('connection.update', async (update) => {
-            const { connection, lastDisconnect, qr } = update;
-
-            if (qr) {
-                console.log('\n╔═══════════════════════════════════════╗');
-                console.log('║  SCAN THIS QR CODE TO LOG IN          ║');
-                console.log('╚═══════════════════════════════════════╝\n');
-                console.log(await QRCode.toString(qr, { type: 'terminal', small: true }));
-                console.log('\n═══════════════════════════════════════\n');
-            }
+            const { connection, lastDisconnect } = update;
 
             if (connection === 'close') {
                 const statusCode = (lastDisconnect?.error instanceof Boom) 
@@ -161,10 +211,9 @@ async function connectToWhatsApp() {
                     setTimeout(() => connectToWhatsApp(), 5000);
                 } else {
                     logger.fatal('Logged out. Session terminated.');
-                    if (config.auth.useCredsFile) {
-                        logger.info('Please get a new creds.json file from Ernest Session Generator');
-                        logger.info('Visit: https://ernest-session.onrender.com/');
-                    }
+                    logger.info('Please get a new session from Ernest Session Generator');
+                    logger.info('Visit: https://ernest-session.onrender.com/');
+                    logger.info('Or set SESSION_ID in your .env file');
                 }
             } else if (connection === 'open') {
                 logger.success('╔═══════════════════════════════════════════╗');
@@ -191,10 +240,19 @@ async function connectToWhatsApp() {
 
     } catch (error) {
         logger.error(`Failed to connect: ${error.message}`);
-        if (error.message.includes('creds.json')) {
-            logger.info('Please visit Ernest Session Generator to get creds.json');
-            logger.info('URL: https://ernest-session.onrender.com/');
+        
+        if (error.message.includes('creds.json') || error.message.includes('SESSION_ID')) {
+            logger.info('╔═══════════════════════════════════════════╗');
+            logger.info('║     HOW TO GET YOUR SESSION ID            ║');
+            logger.info('╚═══════════════════════════════════════════╝');
+            logger.info('1. Visit: https://ernest-tech-house-sessiongenerator.onrender.com/pair');
+            logger.info('2. Choose Pairing Code or QR Code method');
+            logger.info('3. You will receive a base64 session string');
+            logger.info('4. Add to .env: SESSION_ID="your_base64_string"');
+            logger.info('5. Set: USE_CREDS_FILE=true');
+            logger.info('6. Run: npm start');
         }
+        
         process.exit(1);
     }
 }

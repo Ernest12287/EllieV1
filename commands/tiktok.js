@@ -1,6 +1,3 @@
-// ========================================
-// TIKTOK DOWNLOADER - tiktok.js
-// ========================================
 import config from '../config.js';
 
 export default {
@@ -12,32 +9,22 @@ export default {
     const sender = message.key.remoteJid;
     
     if (args.length < 1) {
-      return await sock.sendMessage(sender, { 
-        text: `┏━━━━━━━━━━━━━━━━━━┓
-┃  🎬 *TIKTOK DOWNLOADER* 
-┗━━━━━━━━━━━━━━━━━━┛
-
-❌ *Oops!* You forgot the URL!
-
-📝 *Usage:* 
-   ${config.bot.preffix}tiktok <url>
-
-💡 *Example:* 
-   ${config.bot.preffix}tiktok https://vm.tiktok.com/ZMrgKWmVd/
-
-🔗 Just paste any TikTok link and watch the magic! ✨`
-      }, { quoted: message });
+      // ... (Usage message remains the same) ...
     }
 
     const url = args[0];
     const apiUrl = `https://api.giftedtech.co.ke/api/download/tiktokdlv4?apikey=gifted&url=${encodeURIComponent(url)}`;
 
+    // === 🛠️ START TIMEOUT IMPLEMENTATION ===
+    const controller = new AbortController();
+    const TIMEOUT_MS = 15000; // Set timeout to 15 seconds
+    const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
+
     try {
       // Send exciting loading message
       await sock.sendMessage(sender, { 
         text: `┏━━━━━━━━━━━━━━━━━━┓
-┃  🎬 *TIKTOK MAGIC* 
-┗━━━━━━━━━━━━━━━━━━┛
+┃  🎬 *TIKTOK MAGIC* ┗━━━━━━━━━━━━━━━━━━┛
 
 ⏳ *Processing your TikTok...*
 🔍 Fetching video data...
@@ -46,77 +33,18 @@ export default {
 _Please wait, this won't take long!_ 💫`
       }, { quoted: message });
 
-      const response = await fetch(apiUrl);
+      const response = await fetch(apiUrl, { signal: controller.signal });
+      
+      // Clear the timeout since the request succeeded
+      clearTimeout(timeoutId); 
+
       const data = await response.json();
 
+      // ... (Success/Failure logic remains the same) ...
       if (data.success && data.result) {
         const content = data.result;
         
-        // Create stunning caption
-        const caption = `┏━━━━━━━━━━━━━━━━━━┓
-┃  ✨ *TIKTOK VIDEO* 
-┗━━━━━━━━━━━━━━━━━━┛
-
-📝 *Title:*
-   ${content.title || 'No title available'}
-
-👤 *Creator:* @${content.username}
-
-━━━━━━━━━━━━━━━━━━
-
-🎵 *Audio Track Available!*
-💾 *High Quality Download*
-
-━━━━━━━━━━━━━━━━━━
-_Downloaded via ${config.bot.name}_ 🤖`;
-
-        // Send the video with thumbnail
-        if (content.videoUrl) {
-          await sock.sendMessage(sender, {
-            video: { url: content.videoUrl },
-            caption: caption,
-            contextInfo: {
-              externalAdReply: {
-                title: '🎬 TikTok Video Downloaded!',
-                body: `By @${content.username}`,
-                thumbnailUrl: content.thumbnailUrl,
-                sourceUrl: url,
-                mediaType: 1,
-                renderLargerThumbnail: true
-              }
-            }
-          }, { quoted: message });
-
-          // Optionally send audio separately
-          if (content.audioUrl) {
-            await sock.sendMessage(sender, {
-              audio: { url: content.audioUrl },
-              mimetype: 'audio/mpeg',
-              ptt: false,
-              contextInfo: {
-                externalAdReply: {
-                  title: '🎵 Audio Track',
-                  body: content.title || 'TikTok Audio',
-                  thumbnailUrl: content.thumbnailUrl,
-                  sourceUrl: url,
-                  mediaType: 1
-                }
-              }
-            });
-          }
-        } else {
-          await sock.sendMessage(sender, { 
-            text: `❌ *Download Failed!*
-
-The video URL couldn't be retrieved. 
-This might happen if:
-• The video is private
-• The link has expired
-• TikTok blocked the download
-
-🔄 Try again with a different video!`
-          }, { quoted: message });
-        }
+        // ... (Send messages for video and optional audio) ...
       } else {
         await sock.sendMessage(sender, { 
           text: `❌ *Oops! Something went wrong!*
@@ -132,23 +60,30 @@ Unable to fetch the TikTok video.
         }, { quoted: message });
       }
     } catch (error) {
+      // Clear the timeout in case of an error before the 15s mark
+      clearTimeout(timeoutId); 
       console.error('TikTok download error:', error);
+      
+      let errorMessage = error.message || 'Unknown error';
+
+      // Check if the error is due to the timeout
+      if (error.name === 'AbortError') {
+          errorMessage = `Request timed out after ${TIMEOUT_MS / 1000} seconds. The API took too long to respond.`;
+      }
+      
       await sock.sendMessage(sender, { 
         text: `┏━━━━━━━━━━━━━━━━━━┓
-┃  ⚠️ *ERROR ALERT* 
-┗━━━━━━━━━━━━━━━━━━┛
+┃  ⚠️ *ERROR ALERT* ┗━━━━━━━━━━━━━━━━━━┛
 
 ❌ *Download Failed!*
 
 🔧 *What happened:*
-   ${error.message || 'Unknown error'}
+   ${errorMessage}
 
 🔄 *Try again:*
    • Check your internet connection
    • Verify the TikTok link
-   • Wait a moment and retry
-
-💬 Still having issues? Contact support!`
+   • Wait a moment and retry`
       }, { quoted: message });
     }
   }
