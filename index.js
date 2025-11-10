@@ -13,31 +13,55 @@ import config from './config.js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+// 🌟 NEW: Import the core Node.js zlib module for decompression
+import zlib from 'zlib'; 
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Function to decode base64 session to creds.json
+// MODIFIED: Function to decode base64 session, handling both GZIP and plain Base64
 async function decodeBase64Session(base64String, targetPath) {
+    let decodedBuffer;
+    
     try {
-        // Decode base64 to UTF-8 JSON string
-        const decodedString = Buffer.from(base64String, 'base64').toString('utf8');
+        // Step 1: Decode base64 to a Buffer
+        const buffer = Buffer.from(base64String, 'base64');
+
+        try {
+            // Step 2A (GZIP Attempt): Try to decompress 
+            decodedBuffer = zlib.gunzipSync(buffer);
+            logger.info('Session successfully decompressed using GZIP.');
+        } catch (gzipError) {
+            // Step 2B (Plain Text Fallback): If GZIP fails, assume it's uncompressed JSON
+            decodedBuffer = buffer;
+            logger.info('Session not GZIP compressed, proceeding with plain Base64 decode.');
+        }
         
-        // Verify it's valid JSON
+        // Step 3: Convert Buffer to UTF-8 JSON string
+        const decodedString = decodedBuffer.toString('utf8');
+        
+        // Step 4: Verify it's valid JSON
+        // Using Buffer.toString('utf8') on a large file can sometimes leave bad characters,
+        // so we use a simple check to catch common issues before JSON.parse.
+        if (!decodedString.trim().startsWith('{')) {
+            throw new Error('Decoded content does not look like JSON.');
+        }
+
         const jsonData = JSON.parse(decodedString);
         
-        // Write to file
+        // Step 5: Write to file
         fs.writeFileSync(targetPath, JSON.stringify(jsonData, null, 2), 'utf8');
         
         logger.success('Session decoded and saved successfully');
         return true;
     } catch (error) {
-        logger.error(`Failed to decode session: ${error.message}`);
+        // If it was already decoded/decompressed and failed to parse, it's truly invalid.
+        logger.error(`Failed to decode/decompress session: ${error.message}`);
         return false;
     }
 }
 
-// MODIFIED: Function to handle creds.json file authentication
+// MODIFIED: Function to handle creds.json file authentication (no changes needed here)
 async function getAuthState() {
     if (config.auth.useCredsFile) {
         logger.info('Using creds.json file for authentication...');
@@ -109,6 +133,8 @@ async function getAuthState() {
         return await useMultiFileAuthState(config.auth.folder);
     }
 }
+
+// ... (sendWelcomeMessage and connectToWhatsApp functions remain unchanged)
 
 async function sendWelcomeMessage(sock, commands) {
     try {

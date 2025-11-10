@@ -10,30 +10,111 @@ export default {
     
     async execute(sock, message, args, commands) {
         const sender = message.key.remoteJid;
+        const prefixes = config.bot.prefixes || [config.bot.preffix || '.'];
+        const defaultPrefix = config.bot.defaultPrefix || prefixes[0];
+        const allowNoPrefix = config.bot.allowNoPrefix;
         
-        // If no args, show quick help
+        // If no args, show stunning quick help
         if (args.length === 0) {
             const totalCommands = commands.size;
             
-            let helpText = `╭━━━『 ℹ️ HELP 』\n┃\n`;
-            helpText += `┃ 🤖 *${config.bot.name}*\n`;
-            helpText += `┃ 📊 ${totalCommands} Commands Available\n┃\n`;
-            helpText += `┃━━━━━━━━━━━━━━\n┃\n`;
-            helpText += `┃ 💡 *Quick Commands:*\n`;
-            helpText += `┃ • ${config.bot.preffix}menu - View all categories\n`;
-            helpText += `┃ • ${config.bot.preffix}help <cmd> - Command info\n`;
-            helpText += `┃ • ${config.bot.preffix}aimenu - AI commands\n┃\n`;
-            helpText += `┃━━━━━━━━━━━━━━\n┃\n`;
-            helpText += `┃ 🔥 *Popular:*\n`;
-            helpText += `┃ • ${config.bot.preffix}gemini <question>\n`;
-            helpText += `┃ • ${config.bot.preffix}tiktok <url>\n`;
-            helpText += `┃ • ${config.bot.preffix}sticker (reply image)\n`;
-            helpText += `┃ • ${config.bot.preffix}save (reply status)\n`;
-            helpText += `┃ • ${config.bot.preffix}meme\n┃\n`;
-            helpText += `╰━━━━━━━━━━━━━━━⬣\n\n`;
-            helpText += `_Type ${config.bot.preffix}menu to see all commands_`;
+            // Count categories
+            const categories = new Set();
+            commands.forEach(cmd => categories.add(cmd.category || 'Other'));
             
-            return await sock.sendMessage(sender, { text: helpText });
+            let helpText = `┏━━━━━━━━━━━━━━━━━━━━┓
+┃                                              ┃
+┃      ✨ *${config.bot.name}* ✨         ┃
+┃                                              ┃
+┗━━━━━━━━━━━━━━━━━━━━┛
+
+╭─────────────────────╮
+│   🎯 *QUICK START*   │
+╰─────────────────────╯
+
+`;
+
+            // Show prefix options beautifully
+            if (prefixes.length > 1 || allowNoPrefix) {
+                helpText += `⚡ *Multiple Ways to Use:*\n\n`;
+                
+                // Show first 3 prefixes
+                prefixes.slice(0, 3).forEach((p, i) => {
+                    helpText += `   ${i + 1}️⃣ ${p}help\n`;
+                });
+                
+                if (allowNoPrefix) {
+                    helpText += `   4️⃣ help _(no prefix!)_\n`;
+                }
+                
+                helpText += `\n`;
+            }
+
+            helpText += `━━━━━━━━━━━━━━━━━━━━━━
+
+📊 *Statistics*
+├─ Commands: ${totalCommands}
+├─ Categories: ${categories.size}
+├─ Prefixes: ${prefixes.join(', ')}
+${allowNoPrefix ? '└─ No-prefix: ✅ Enabled' : '└─ No-prefix: ❌ Disabled'}
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+🎯 *Quick Commands*
+
+┌─ 📋 View All
+│  ${defaultPrefix}menu
+│
+├─ 🤖 AI Assistant  
+│  ${defaultPrefix}gemini <question>
+│
+├─ 📥 Download
+│  ${defaultPrefix}tiktok <url>
+│  ${defaultPrefix}ig <url>
+│
+├─ 🎨 Media
+│  ${defaultPrefix}sticker (reply image)
+│  ${defaultPrefix}toimg (reply sticker)
+│
+└─ 💾 Save Status
+   ${defaultPrefix}save (reply to status)
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+💡 *Need More Help?*
+
+• ${defaultPrefix}menu - Browse categories
+• ${defaultPrefix}help <cmd> - Command info
+• ${defaultPrefix}prefix - Check settings
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+🔥 *Trending Now*
+${defaultPrefix}meme  •  ${defaultPrefix}advice  •  ${defaultPrefix}quote
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+📱 *Connect With Us*
+Telegram: ${config.social.telegram}
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+_${config.bot.name} v${config.bot.version}_
+_Made with 💚 by ${config.creator.name}_`;
+            
+            return await sock.sendMessage(sender, { 
+                text: helpText,
+                contextInfo: {
+                    externalAdReply: {
+                        title: `${config.bot.name} - Help Center`,
+                        body: `${totalCommands} Commands • ${categories.size} Categories`,
+                        thumbnailUrl: 'https://i.ibb.co/0cMQz4P/help-icon.png',
+                        sourceUrl: config.social.telegram,
+                        mediaType: 1,
+                        renderLargerThumbnail: true
+                    }
+                }
+            });
         }
 
         // Get specific command help
@@ -41,7 +122,7 @@ export default {
         const command = commands.get(commandName);
         
         if (!command) {
-            // Try to find similar commands
+            // Try to find similar commands (fuzzy search)
             const similar = [];
             commands.forEach((cmd, name) => {
                 if (name.includes(commandName) || commandName.includes(name)) {
@@ -54,56 +135,140 @@ export default {
                 }
             });
             
-            let notFoundText = `╭━━━『 ❌ NOT FOUND 』\n┃\n`;
-            notFoundText += `┃ Command *"${commandName}"* not found!\n┃\n`;
+            let notFoundText = `┏━━━━━━━━━━━━━━━━━━━━┓
+┃   ❌ *COMMAND NOT FOUND*   ┃
+┗━━━━━━━━━━━━━━━━━━━━┛
+
+🔍 Looking for: *"${commandName}"*
+
+`;
             
             if (similar.length > 0) {
-                notFoundText += `┃━━━━━━━━━━━━━━\n┃\n`;
-                notFoundText += `┃ 💡 Did you mean:\n`;
-                similar.slice(0, 5).forEach(cmd => {
-                    notFoundText += `┃ • ${config.bot.preffix}${cmd}\n`;
+                const uniqueSimilar = [...new Set(similar)];
+                notFoundText += `━━━━━━━━━━━━━━━━━━━━━━
+
+💡 *Did You Mean?*
+
+`;
+                uniqueSimilar.slice(0, 5).forEach((cmd, i) => {
+                    notFoundText += `${i + 1}. ${defaultPrefix}${cmd}\n`;
                 });
-                notFoundText += `┃\n`;
+                
+                notFoundText += `\n━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+            } else {
+                notFoundText += `━━━━━━━━━━━━━━━━━━━━━━
+
+⚠️ No similar commands found
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+`;
             }
             
-            notFoundText += `╰━━━━━━━━━━━━━━━⬣\n\n`;
-            notFoundText += `_Use ${config.bot.preffix}menu to see all commands_`;
+            notFoundText += `📚 *Browse All Commands*
+${defaultPrefix}menu - View categories
+${defaultPrefix}menu <category> - View category
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+_Try checking the spelling or use ${defaultPrefix}menu_`;
             
             return await sock.sendMessage(sender, { text: notFoundText });
         }
 
-        // Show detailed command help
-        let cmdHelp = `╭━━━『 ℹ️ COMMAND INFO 』\n┃\n`;
-        cmdHelp += `┃ 📝 *Command:* ${config.bot.preffix}${command.name}\n┃\n`;
-        
-        if (command.aliases && command.aliases.length > 0) {
-            cmdHelp += `┃ 🔄 *Aliases:*\n`;
-            command.aliases.forEach(alias => {
-                cmdHelp += `┃ • ${config.bot.preffix}${alias}\n`;
-            });
-            cmdHelp += `┃\n`;
-        }
-        
-        cmdHelp += `┃━━━━━━━━━━━━━━\n┃\n`;
-        
-        if (command.description) {
-            cmdHelp += `┃ 📖 *Description:*\n`;
-            cmdHelp += `┃ ${command.description}\n┃\n`;
-        }
-        
-        if (command.usage) {
-            cmdHelp += `┃ 💡 *Usage:*\n`;
-            cmdHelp += `┃ ${command.usage}\n┃\n`;
-        }
-        
-        if (command.category) {
-            cmdHelp += `┃ 📂 *Category:* ${command.category}\n┃\n`;
-        }
-        
-        cmdHelp += `╰━━━━━━━━━━━━━━━⬣\n\n`;
-        cmdHelp += `_${config.bot.name}_`;
+        // Show BEAUTIFUL detailed command help
+        let cmdHelp = `┏━━━━━━━━━━━━━━━━━━━━┓
+┃   📖 *COMMAND DETAILS*   ┃
+┗━━━━━━━━━━━━━━━━━━━━┛
 
-        await sock.sendMessage(sender, { text: cmdHelp });
+`;
+
+        // Command name with emoji based on category
+        const categoryEmoji = this._getCategoryEmoji(command.category);
+        cmdHelp += `${categoryEmoji} *${command.name.toUpperCase()}*\n\n`;
+        
+        cmdHelp += `━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+        
+        // Description
+        if (command.description) {
+            cmdHelp += `📝 *Description*\n${command.description}\n\n`;
+            cmdHelp += `━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+        }
+        
+        // Usage examples with all prefixes
+        if (command.usage) {
+            cmdHelp += `💡 *Usage*\n${command.usage}\n\n`;
+            
+            // Show multiple ways to use
+            cmdHelp += `⚡ *Try These:*\n`;
+            prefixes.slice(0, 2).forEach((p, i) => {
+                cmdHelp += `   ${i + 1}. ${p}${command.name}${args[1] ? ' ' + args.slice(1).join(' ') : ''}\n`;
+            });
+            if (allowNoPrefix) {
+                cmdHelp += `   3. ${command.name} _(no prefix)_\n`;
+            }
+            cmdHelp += `\n━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+        }
+        
+        // Aliases
+        if (command.aliases && command.aliases.length > 0) {
+            cmdHelp += `🔄 *Alternative Names*\n`;
+            command.aliases.forEach((alias, i) => {
+                cmdHelp += `   ${i + 1}. ${defaultPrefix}${alias}\n`;
+            });
+            cmdHelp += `\n━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+        }
+        
+        // Category
+        if (command.category) {
+            cmdHelp += `📂 *Category*\n${command.category}\n\n`;
+            cmdHelp += `_View more: ${defaultPrefix}menu ${command.category.toLowerCase()}_\n\n`;
+            cmdHelp += `━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+        }
+        
+        // Footer
+        cmdHelp += `💬 *Need More Help?*\n`;
+        cmdHelp += `Contact: wa.me/${config.creator.number}\n\n`;
+        cmdHelp += `━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+        cmdHelp += `_${config.bot.name} • ${command.category || 'General'}_`;
+
+        await sock.sendMessage(sender, { 
+            text: cmdHelp,
+            contextInfo: {
+                externalAdReply: {
+                    title: `${command.name.toUpperCase()} - Command Help`,
+                    body: command.description || 'View command details',
+                    thumbnailUrl: 'https://i.ibb.co/0cMQz4P/help-icon.png',
+                    sourceUrl: config.social.telegram,
+                    mediaType: 1,
+                    renderLargerThumbnail: false
+                }
+            }
+        });
+        
         logging.success(`[HELP] Sent help for: ${commandName}`);
+    },
+    
+    _getCategoryEmoji(category) {
+        const emojiMap = {
+            'AI': '🤖',
+            'Download': '📥',
+            'Downloader': '📥',
+            'Media': '🎬',
+            'Fun': '🎮',
+            'Game': '🎮',
+            'Utility': '🔧',
+            'Tools': '🔧',
+            'Image': '🖼️',
+            'Sticker': '🎨',
+            'Info': 'ℹ️',
+            'Group': '👥',
+            'Admin': '👑',
+            'Owner': '👑',
+            'Search': '🔍',
+            'Bible': '📖',
+            'Other': '📦'
+        };
+        return emojiMap[category] || '⭐';
     }
 };

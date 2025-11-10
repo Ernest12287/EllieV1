@@ -6,15 +6,21 @@ logging.success("Configs loading successfully initiated");
 const config = {
     bot: {
         name: process.env.BOT_NAME || "𝓔𝓵𝓵𝓲𝓮 𝓿1", 
-        version: process.env.VERSION || "1.0.0",
-        preffix: process.env.PREFFIX || ".",
+        version: process.env.VERSION || "2.0.0",
+        // ENHANCED: Multi-prefix support + no-prefix mode
+        prefixes: process.env.PREFIXES ? process.env.PREFIXES.split(',') : ['.', '#', '*', '!'],
+        defaultPrefix: process.env.DEFAULT_PREFIX || ".", // For display in help
+        allowNoPrefix: process.env.ALLOW_NO_PREFIX === "true" || true, // Enable/disable no-prefix commands
         welcomeImage: process.env.WELCOME_IMAGE || "./assets/welcome.jpg",
+        
+        // ENHANCED: Channel/Newsletter settings
+        reactToChannels: process.env.REACT_TO_CHANNELS === "true" || true,
+        channelReaction: process.env.CHANNEL_REACTION || "❤️",
+        autoReadChannels: process.env.AUTO_READ_CHANNELS === "true" || true,
     },
-    // apikeys: API keys are now exclusively loaded from process.env in the auth section or where they are used.
     auth: {
-        // MODIFIED: Support both folder and file-based authentication
         folder: process.env.CONFIG_FOLDER || "Elliev1",
-        useCredsFile: process.env.USE_CREDS_FILE === "true", // Set to "true" to use creds.json
+        useCredsFile: process.env.USE_CREDS_FILE === "true",
         credsFilePath: process.env.CREDS_FILE_PATH || "./creds.json",
     },
     user: {
