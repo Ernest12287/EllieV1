@@ -1,6 +1,6 @@
 import config from '../config.js';
 import logging from '../logger.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
     name: 'nutrition',
     aliases: ['nutrient', 'calories'],
@@ -9,16 +9,16 @@ export default {
     category: 'Health',
     
     async execute(sock, message, args) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         
         if (args.length < 1) {
-            return await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: `╭━━━『 🍎 NUTRITION FACTS 』\n┃\n┃ ❌ Usage: ${config.bot.preffix}nutrition <food>\n┃\n┃ 💡 Examples:\n┃ ${config.bot.preffix}nutrition apple\n┃ ${config.bot.preffix}nutrition chicken breast\n┃ ${config.bot.preffix}nutrition rice\n┃\n╰━━━━━━━━━━━━━━━⬣`
             });
         }
 
         try {
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: '⏳ Analyzing nutrition data...' 
             });
 
@@ -58,16 +58,16 @@ export default {
                 nutritionText += `📊 *Serving:* 100g\n`;
                 nutritionText += `_Data from USDA FoodData Central_`;
 
-                await sock.sendMessage(sender, { text: nutritionText });
+                await sock.sendMessage(jid.chat, { text: nutritionText });
                 logging.success(`[NUTRITION] Data sent for: ${food}`);
 
             } else {
                 // Fallback to common foods database
                 const commonData = this._getCommonFoodData(food);
                 if (commonData) {
-                    await sock.sendMessage(sender, { text: commonData });
+                    await sock.sendMessage(jid.chat, { text: commonData });
                 } else {
-                    await sock.sendMessage(sender, { 
+                    await sock.sendMessage(jid.chat, { 
                         text: `❌ No nutrition data found for *"${food}"*\n\n💡 Try common food names like: apple, banana, chicken, rice, egg` 
                     });
                 }
@@ -75,7 +75,7 @@ export default {
 
         } catch (error) {
             logging.error(`[NUTRITION] Error: ${error.message}`);
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: '❌ Failed to fetch nutrition data.' 
             });
         }

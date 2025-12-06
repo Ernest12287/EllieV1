@@ -1,8 +1,8 @@
 import config from '../config.js';
 import logging from '../logger.js';
-import { downloadMediaMessage } from '@whiskeysockets/baileys';
+import { downloadMediaMessage } from 'baileys';
 import sharp from 'sharp';
-
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
     name: 'toimage',
     aliases: ['toimg', 'image'],
@@ -11,7 +11,7 @@ export default {
     category: 'Convert',
     
     async execute(sock, message, args) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         
         try {
             // Check if message is a reply to a sticker or contains a sticker
@@ -19,13 +19,13 @@ export default {
             const stickerMessage = quotedMessage?.stickerMessage || message.message?.stickerMessage;
             
             if (!stickerMessage) {
-                await sock.sendMessage(sender, { 
+                await sock.sendMessage(jid.chat, { 
                     text: '❌ *No Sticker Found*\n\nPlease reply to a sticker with this command.\n\nUsage: `' + config.bot.preffix + 'toimage` (reply to sticker)' 
                 });
                 return;
             }
             
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: '⏳ *Converting to Image...*\n\nUsing sharp. Please wait...' 
             });
             
@@ -52,7 +52,7 @@ export default {
             }
             
             // Send the converted image
-            await sock.sendMessage(sender, {
+            await sock.sendMessage(jid.chat, {
                 image: imageBuffer,
                 caption: '✅ *Converted to Image!*\n\n🖼️ Sticker successfully converted using sharp.'
             });
@@ -69,7 +69,7 @@ export default {
                  errorMsg += '\n\n*Troubleshooting:* Ensure the `sharp` package is installed correctly in your environment.';
             }
 
-            await sock.sendMessage(sender, { text: errorMsg });
+            await sock.sendMessage(jid.chat, { text: errorMsg });
         }
     }
 };

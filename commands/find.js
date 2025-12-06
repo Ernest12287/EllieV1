@@ -1,6 +1,6 @@
 import config from '../config.js';
 import logging from '../logger.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 // Assumes 'fetch' is available (Node.js v18+), or 'node-fetch' is imported if older Node version.
 // import fetch from 'node-fetch'; 
 
@@ -12,17 +12,17 @@ export default {
     category: 'Media',
 
     async execute(sock, message, args) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         
         // 1. Input Validation
         if (args.length < 1) {
-            return await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: `╭━━━『 🖼️ IMAGE FINDER 』\n┃\n┃ ❌ Usage: ${config.bot.preffix}find <search query>\n┃\n┃ 💡 Example:\n┃ ${config.bot.preffix}find golden retriever puppy\n┃\n╰━━━━━━━━━━━━━━━⬣`
             });
         }
 
         try {
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: '🔍 Searching for your image...' 
             });
 
@@ -51,7 +51,7 @@ export default {
                 const imageUrl = data.results[0];
                 
                 // 5. Send the image back
-                await sock.sendMessage(sender, {
+                await sock.sendMessage(jid.chat, {
                     image: { url: imageUrl },
                     caption: `🖼️ First result for *"${query}"*`
                 });
@@ -59,14 +59,14 @@ export default {
                 logging.success(`[IMAGE] Sent image for: ${query}`);
                 
             } else {
-                await sock.sendMessage(sender, { 
+                await sock.sendMessage(jid.chat, { 
                     text: `❌ Image not found for *"${query}"*. Please try a different search query.`
                 });
             }
 
         } catch (error) {
             logging.error(`[IMAGE] Error fetching data: ${error.message}`);
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: `❌ An unexpected error occurred while fetching the image.`
             });
         }

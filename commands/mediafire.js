@@ -4,7 +4,7 @@ import fetch from 'node-fetch';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-
+import { getChatJid } from '../utils/jidHelper.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -15,11 +15,11 @@ export default {
     category: 'Downloader',
 
     async execute(sock, message, args) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         const url = args[0];
 
         if (!url) {
-            await sock.sendMessage(sender, { text: '❌ Please provide a Mediafire link.\nExample: `.mediafire https://www.mediafire.com/file/...`' });
+            await sock.sendMessage(jid.chat, { text: '❌ Please provide a Mediafire link.\nExample: `.mediafire https://www.mediafire.com/file/...`' });
             return;
         }
 
@@ -32,7 +32,7 @@ export default {
 
             if (!data.success || !data.result) {
                 logging.error('Invalid response from GiftedTech Mediafire API');
-                await sock.sendMessage(sender, { text: '⚠️ Could not fetch Mediafire file info. Try again later.' });
+                await sock.sendMessage(jid.chat, { text: '⚠️ Could not fetch Mediafire file info. Try again later.' });
                 return;
             }
 
@@ -54,7 +54,7 @@ ${sizeInMB > 70 ? downloadUrl : ''}
             `.trim();
 
             if (sizeInMB > 70) {
-                await sock.sendMessage(sender, { text: caption });
+                await sock.sendMessage(jid.chat, { text: caption });
                 logging.warn(`Skipped download — file too large (${sizeInMB.toFixed(2)} MB).`);
                 return;
             }
@@ -77,7 +77,7 @@ ${sizeInMB > 70 ? downloadUrl : ''}
 
             logging.success(`Download complete: ${fileName}`);
 
-            await sock.sendMessage(sender, {
+            await sock.sendMessage(jid.chat, {
                 document: fs.readFileSync(filePath),
                 mimetype: data.result.mimeType,
                 fileName,
@@ -91,7 +91,7 @@ ${sizeInMB > 70 ? downloadUrl : ''}
 
         } catch (err) {
             logging.error(err);
-            await sock.sendMessage(sender, { text: '❌ Something went wrong while processing your request.' });
+            await sock.sendMessage(jid.chat, { text: '❌ Something went wrong while processing your request.' });
         }
     }
 };

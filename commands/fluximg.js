@@ -1,5 +1,5 @@
 import config from '../config.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
   name: 'fluximg',
   aliases: ['flux', 'fluxai'],
@@ -7,10 +7,10 @@ export default {
   usage: '.fluximg <prompt>',
   category: 'AI',
   async execute(sock, message, args) {
-    const sender = message.key.remoteJid;
+    const jid = getChatJid(message);
     
     if (args.length < 1) {
-      return await sock.sendMessage(sender, { 
+      await sock.sendMessage(jid.chat, { 
         text: `┏━━━━━━━━━━━━━━━━━━┓
 ┃  ⚡ *FLUX IMAGE AI* 
 ┗━━━━━━━━━━━━━━━━━━┛
@@ -32,7 +32,7 @@ export default {
     const apiUrl = `https://api.giftedtech.co.ke/api/ai/fluximg?apikey=gifted&prompt=${encodeURIComponent(prompt)}`;
 
     try {
-      await sock.sendMessage(sender, { 
+      await sock.sendMessage(jid.chat, { 
         text: `┏━━━━━━━━━━━━━━━━━━┓
 ┃  ⚡ *FLUX AI WORKING* 
 ┗━━━━━━━━━━━━━━━━━━┛
@@ -60,12 +60,12 @@ ${prompt}
 ━━━━━━━━━━━━━━━━━━
 _Powered by Flux AI_ ⚡`;
 
-        await sock.sendMessage(sender, {
+        await sock.sendMessage(jid.chat, {
           image: { url: data.result },
           caption: caption
         }, { quoted: message });
       } else {
-        await sock.sendMessage(sender, { 
+        await sock.sendMessage(jid.chat, { 
           text: `❌ *Flux Generation Failed!*
 
 Try a different prompt!`
@@ -73,7 +73,7 @@ Try a different prompt!`
       }
     } catch (error) {
       console.error('Flux Image error:', error);
-      await sock.sendMessage(sender, { 
+      await sock.sendMessage(jid.chat, { 
         text: `❌ *Error!* ${error.message}`
       }, { quoted: message });
     }

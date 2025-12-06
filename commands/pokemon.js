@@ -1,6 +1,6 @@
 import config from '../config.js';
 import logging from '../logger.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
     name: 'pokemon',
     aliases: ['poke', 'pokedex'],
@@ -9,16 +9,16 @@ export default {
     category: 'Fun',
     
     async execute(sock, message, args) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         
         if (args.length < 1) {
-            return await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: `╭━━━『 ⚡ POKEMON 』\n┃\n┃ ❌ Usage: ${config.bot.preffix}pokemon <name/id>\n┃\n┃ 💡 Examples:\n┃ ${config.bot.preffix}pokemon pikachu\n┃ ${config.bot.preffix}pokemon 25\n┃ ${config.bot.preffix}pokemon charizard\n┃\n╰━━━━━━━━━━━━━━━⬣`
             });
         }
 
         try {
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: '⚡ Searching Pokedex...' 
             });
 
@@ -39,21 +39,21 @@ export default {
                 const pokeText = `╭━━━『 ⚡ POKEMON 』\n┃\n┃ 📛 *${name}* #${data.id}\n┃\n┃━━━━━━━━━━━━━━\n┃\n┃ 🎨 Type: ${types}\n┃ ⚔️ Abilities: ${abilities}\n┃ 📏 Height: ${height}m\n┃ ⚖️ Weight: ${weight}kg\n┃\n┃━━━━━━━━━━━━━━\n┃ 📊 *Base Stats:*\n┃ ${stats}\n┃\n╰━━━━━━━━━━━━━━━⬣\n\n_${config.bot.name}_`;
                 
                 // Send with sprite image
-                await sock.sendMessage(sender, {
+                await sock.sendMessage(jid.chat, {
                     image: { url: data.sprites.other['official-artwork'].front_default || data.sprites.front_default },
                     caption: pokeText
                 });
                 
                 logging.success(`[POKEMON] Sent info for: ${name}`);
             } else {
-                await sock.sendMessage(sender, { 
+                await sock.sendMessage(jid.chat, { 
                     text: `❌ Pokemon *"${query}"* not found!\n\n💡 Check spelling or try a different Pokemon.` 
                 });
             }
 
         } catch (error) {
             logging.error(`[POKEMON] Error: ${error.message}`);
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: '❌ Failed to fetch Pokemon data.' 
             });
         }

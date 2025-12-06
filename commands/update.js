@@ -3,7 +3,7 @@ import logging from '../logger.js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-
+import { getChatJid } from '../utils/jidHelper.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default {
@@ -13,14 +13,14 @@ export default {
     category: 'Owner',
     
     async execute(sock, message, args) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         
         // SECURITY: Only bot owner can use this
         const ownerNumber = config.user.number.replace(/[^0-9]/g, '');
         const senderNumber = sender.replace(/[^0-9]/g, '');
         
         if (senderNumber !== ownerNumber) {
-            return await sock.sendMessage(sender, {
+            await sock.sendMessage(jid.chat, {
                 text: '❌ *Access Denied*\n\nThis command is restricted to the bot owner only.'
             }, { quoted: message });
         }
@@ -31,7 +31,7 @@ export default {
         
         if (!GITHUB_TOKEN) {
             logging.error('[UPDATE] GITHUB_PAT not found in environment variables');
-            return await sock.sendMessage(sender, {
+            await sock.sendMessage(jid.chat, {
                 text: '❌ *Update Failed*\n\nGITHUB_PAT not configured in .env file.\n\nPlease add your GitHub Personal Access Token to continue.'
             }, { quoted: message });
         }
@@ -42,7 +42,7 @@ export default {
             { remote: 'Handlers', local: path.join(__dirname, '..', 'Handlers') }
         ];
 
-        await sock.sendMessage(sender, {
+        await sock.sendMessage(jid.chat, {
             text: '🔄 *Update Started*\n\n⏳ Fetching latest code from GitHub...\n\n_This may take a moment._'
         }, { quoted: message });
 
@@ -121,7 +121,7 @@ export default {
             summaryText += '🔄 *Restarting bot in 3 seconds...*\n\n';
             summaryText += '_All updates will be applied after restart._';
 
-            await sock.sendMessage(sender, {
+            await sock.sendMessage(jid.chat, {
                 text: summaryText
             }, { quoted: message });
 
@@ -136,7 +136,7 @@ export default {
         } catch (error) {
             logging.error(`[UPDATE] Critical error: ${error.message}`);
             
-            await sock.sendMessage(sender, {
+            await sock.sendMessage(jid.chat, {
                 text: `❌ *Update Failed*\n\n*Error:* ${error.message}\n\n*Files Updated:* ${totalUpdated}\n*Files Failed:* ${totalFailed}\n\n_Please check logs for details._`
             }, { quoted: message });
         }

@@ -1,6 +1,6 @@
 import config from '../config.js';
 import logging from '../logger.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
     name: 'verse',
     description: 'Get Bible verses',
@@ -8,10 +8,10 @@ export default {
     category: 'Bible',
     
     async execute(sock, message, args) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         
         if (args.length < 2) {
-            return await sock.sendMessage(sender, {
+            await sock.sendMessage(jid.chat, {
                 text: `❌ Usage: ${config.bot.preffix}verse <book> <chapter>:<verse>\n\n` +
                       `Examples:\n` +
                       `• ${config.bot.preffix}verse john 3:16\n` +
@@ -21,7 +21,7 @@ export default {
         }
         
         try {
-            await sock.sendMessage(sender, {
+            await sock.sendMessage(jid.chat, {
                 text: '⏳ Fetching Bible verse...'
             });
             
@@ -65,12 +65,12 @@ export default {
                     if (messageText.length > 3500) {
                         const parts = this._splitText(messageText, 3500);
                         for (let i = 0; i < parts.length; i++) {
-                            await sock.sendMessage(sender, {
+                            await sock.sendMessage(jid.chat, {
                                 text: parts[i] + (parts.length > 1 ? `\n\n📄 ${i + 1}/${parts.length}` : '')
                             });
                         }
                     } else {
-                        await sock.sendMessage(sender, { text: messageText });
+                        await sock.sendMessage(jid.chat, { text: messageText });
                     }
                     
                     logging.success(`[VERSE] Sent: ${data.reference}`);
@@ -87,7 +87,7 @@ export default {
             }
             
             // If we get here, no data was found
-            await sock.sendMessage(sender, {
+            await sock.sendMessage(jid.chat, {
                 text: '❌ Verse not found. Please check the book and verse reference.'
             });
             
@@ -101,7 +101,7 @@ export default {
                                `🔍 *Search manually:*\n` +
                                `https://www.biblegateway.com/passage/?search=${encodeURIComponent(searchQuery)}&version=KJV`;
             
-            await sock.sendMessage(sender, { text: fallbackText });
+            await sock.sendMessage(jid.chat, { text: fallbackText });
         }
     },
     

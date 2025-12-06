@@ -1,7 +1,7 @@
 // ===== define.js =====
 import config from '../config.js';
 import logging from '../logger.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
     name: 'define',
     aliases: ['definition', 'meaning'],
@@ -10,10 +10,10 @@ export default {
     category: 'Info',
     
     async execute(sock, message, args) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         
         if (args.length < 1) {
-            return await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: `╭━━━『 📚 DICTIONARY 』\n┃\n┃ ❌ Usage: ${config.bot.preffix}define <word>\n┃\n┃ 💡 Example:\n┃ ${config.bot.preffix}define serendipity\n┃\n╰━━━━━━━━━━━━━━━⬣`
             });
         }
@@ -46,14 +46,14 @@ export default {
                 
                 defText += `┃\n╰━━━━━━━━━━━━━━━⬣`;
                 
-                await sock.sendMessage(sender, { text: defText });
+                await sock.sendMessage(jid.chat, { text: defText });
                 logging.success(`[DEFINE] Definition sent for: ${word}`);
             } else {
-                await sock.sendMessage(sender, { text: `❌ No definition found for "${word}"` });
+                await sock.sendMessage(jid.chat, { text: `❌ No definition found for "${word}"` });
             }
         } catch (error) {
             logging.error(`[DEFINE] Error: ${error.message}`);
-            await sock.sendMessage(sender, { text: '❌ Word not found!' });
+            await sock.sendMessage(jid.chat, { text: '❌ Word not found!' });
         }
     }
 };

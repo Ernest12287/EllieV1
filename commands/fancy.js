@@ -1,6 +1,6 @@
 import config from '../config.js';
 import logging from '../logger.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
     name: 'fancy',
     aliases: ['style', 'fancytext'],
@@ -9,16 +9,16 @@ export default {
     category: 'Utility',
     
     async execute(sock, message, args) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         
         if (args.length < 1) {
-            return await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: `╭━━━『 ✨ FANCY TEXT 』\n┃\n┃ ❌ Usage: ${config.bot.preffix}fancy <text>\n┃\n┃ 💡 Example:\n┃ ${config.bot.preffix}fancy Hello World\n┃\n╰━━━━━━━━━━━━━━━⬣`
             });
         }
 
         try {
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: '✨ Creating fancy text...' 
             });
 
@@ -42,17 +42,17 @@ export default {
                 
                 resultText += `┃\n╰━━━━━━━━━━━━━━━⬣\n\n_${config.bot.name}_`;
                 
-                await sock.sendMessage(sender, { text: resultText });
+                await sock.sendMessage(jid.chat, { text: resultText });
                 logging.success(`[FANCY] Styled text created`);
             } else {
-                await sock.sendMessage(sender, { 
+                await sock.sendMessage(jid.chat, { 
                     text: '❌ Failed to create fancy text!' 
                 });
             }
 
         } catch (error) {
             logging.error(`[FANCY] Error: ${error.message}`);
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: `❌ Error creating fancy text!` 
             });
         }

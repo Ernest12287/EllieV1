@@ -1,6 +1,6 @@
 import config from '../config.js';
 import logging from '../logger.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
     name: 'dbinary',
     aliases: ['decodebinary', 'frombinary'],
@@ -9,16 +9,16 @@ export default {
     category: 'Utility',
     
     async execute(sock, message, args) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         
         if (args.length < 1) {
-            return await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: `╭━━━『 💾 BINARY DECODE 』\n┃\n┃ ❌ Usage: ${config.bot.preffix}dbinary <binary>\n┃\n┃ 💡 Example:\n┃ ${config.bot.preffix}dbinary 01001000 01101001\n┃\n╰━━━━━━━━━━━━━━━⬣`
             });
         }
 
         try {
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: '💾 Decoding binary...' 
             });
 
@@ -31,17 +31,17 @@ export default {
             if (data.success && data.result) {
                 const resultText = `╭━━━『 💾 BINARY DECODED 』\n┃\n┃ 🔢 Binary:\n┃ ${binary.substring(0, 50)}${binary.length > 50 ? '...' : ''}\n┃\n┃━━━━━━━━━━━━━━\n┃\n┃ ✅ Decoded:\n┃ ${data.result}\n┃\n╰━━━━━━━━━━━━━━━⬣\n\n_${config.bot.name}_`;
                 
-                await sock.sendMessage(sender, { text: resultText });
+                await sock.sendMessage(jid.chat, { text: resultText });
                 logging.success(`[DBINARY] Binary decoded`);
             } else {
-                await sock.sendMessage(sender, { 
+                await sock.sendMessage(jid.chat, { 
                     text: '❌ Failed to decode! Check binary format.' 
                 });
             }
 
         } catch (error) {
             logging.error(`[DBINARY] Error: ${error.message}`);
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: `❌ Error decoding!` 
             });
         }

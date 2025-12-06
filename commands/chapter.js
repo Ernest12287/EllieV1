@@ -8,10 +8,10 @@ export const chapterCommand = {
     category: 'Bible',
     
     async execute(sock, message, args) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         
         if (args.length < 2) {
-            return await sock.sendMessage(sender, {
+            await sock.sendMessage(jid.chat, {
                 text: `❌ Usage: ${config.bot.preffix}chapter <book> <chapter>\n\n` +
                       `Examples:\n` +
                       `• ${config.bot.preffix}chapter john 3\n` +
@@ -20,7 +20,7 @@ export const chapterCommand = {
         }
         
         try {
-            await sock.sendMessage(sender, {
+            await sock.sendMessage(jid.chat, {
                 text: '⏳ Fetching Bible chapter...'
             });
             
@@ -53,7 +53,7 @@ export const chapterCommand = {
                     const messages = this._splitChapter(fullText, 3500);
                     
                     for (let i = 0; i < messages.length; i++) {
-                        await sock.sendMessage(sender, {
+                        await sock.sendMessage(jid.chat, {
                             text: messages[i] + (messages.length > 1 ? `\n\n📄 Page ${i + 1}/${messages.length}` : '')
                         });
                     }
@@ -71,7 +71,7 @@ export const chapterCommand = {
                 throw fetchError;
             }
             
-            await sock.sendMessage(sender, {
+            await sock.sendMessage(jid.chat, {
                 text: '❌ Chapter not found. Please check the book and chapter.'
             });
             
@@ -84,7 +84,7 @@ export const chapterCommand = {
                                `🔍 *Read online:*\n` +
                                `https://www.biblegateway.com/passage/?search=${encodeURIComponent(searchQuery)}&version=KJV`;
             
-            await sock.sendMessage(sender, { text: fallbackText });
+            await sock.sendMessage(jid.chat, { text: fallbackText });
         }
     },
     

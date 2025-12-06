@@ -1,10 +1,10 @@
-import { downloadMediaMessage } from '@whiskeysockets/baileys';
+import { downloadMediaMessage } from 'baileys';
 import config from '../config.js';
 import logging from '../logger.js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-
+import { getChatJid } from '../utils/jidHelper.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default {
@@ -14,7 +14,7 @@ export default {
     category: 'Status',
     
     async execute(sock, message, args) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         const userJid = `${config.user.number}@s.whatsapp.net`;
         
         // Check if this is a reply to a status
@@ -22,7 +22,7 @@ export default {
         const quotedKey = message.message?.extendedTextMessage?.contextInfo?.stanzaId;
         
         if (!quotedMessage) {
-            return await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: `💾 *Status Saver*\n\n❌ Please reply to a status message with .save\n\n_This command only works when replying to status updates._`
             });
         }

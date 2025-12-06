@@ -1,57 +1,54 @@
 import config from '../config.js';
 import logging from '../logger.js';
-
+import { getChatJid, isUserAdmin } from '../utils/jidHelper.js';
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
     name: 'tagall',
-    description: 'Tag all members',
-    usage: '.tagall <message>',
-    category: 'Group',
-    
+    description:'tag group members',
     async execute(sock, message, args) {
-        const sender = message.key.remoteJid;
+        // Line 1: Get EVERYTHING! 🔥
+        const jid = getChatJid(message);
         
-        if (!sender.endsWith('@g.us')) {
-            await sock.sendMessage(sender, { text: config.error.notingroups });
+        // Line 2: Check if group (ONE LINE!)
+        if (!jid.isGroup) {
+            await sock.sendMessage(jid.chat, { text: config.error.notingroups });
             return;
         }
         
         try {
-            const groupMetadata = await sock.groupMetadata(sender);
+            const groupMetadata = await sock.groupMetadata(jid.chat);
             const participants = groupMetadata.participants;
             
-            const senderIsAdmin = participants.find(p => 
-                p.id === message.key.participant && (p.admin === 'admin' || p.admin === 'superadmin')
-            );
+            // Line 3: Check admin (ONE LINE!)
+            const senderIsAdmin = isUserAdmin(groupMetadata, jid.sender);
             
             if (!senderIsAdmin) {
-                await sock.sendMessage(sender, { text: config.error.notadmin });
+                await sock.sendMessage(jid.chat, { text: config.error.notadmin });
                 return;
             }
             
             const tagMessage = args.length > 0 ? args.join(' ') : 'Attention everyone!';
             let mentions = participants.map(p => p.id);
-            
             let text = `╔═══════════════════╗\n`;
             text += `║   📢 *TAG ALL*    ║\n`;
             text += `╚═══════════════════╝\n\n`;
             text += `${tagMessage}\n\n`;
             text += `┌─────────────────\n`;
             
+            // Line 4: Format numbers (HELPER METHOD!)
             participants.forEach((p, i) => {
-                text += `│ ${i + 1}. @${p.id.split('@')[0]}\n`;
+                text += `│ ${i + 1}. @${jid.formatJid(p.id)}\n`;
             });
             
             text += `└─────────────────\n\n`;
             text += `👥 Total: ${participants.length}\n`;
             text += `🤖 ${config.bot.name}`;
             
-            await sock.sendMessage(sender, { text, mentions });
-            
+            await sock.sendMessage(jid.chat, { text, mentions });
             logging.success(`[TAGALL] Tagged ${participants.length} members`);
-            
         } catch (error) {
             logging.error(`[TAGALL] Error: ${error.message}`);
-            await sock.sendMessage(sender, { text: '❌ Failed to tag members.' });
+            await sock.sendMessage(jid.chat, { text: '❌ Failed to tag members.' });
         }
     }
 };

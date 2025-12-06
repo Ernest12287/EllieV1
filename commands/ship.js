@@ -1,6 +1,6 @@
 // ===== ship.js =====
 import config from '../config.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
     name: 'ship',
     aliases: ['love', 'lovecalc'],
@@ -9,10 +9,10 @@ export default {
     category: 'Fun',
     
     async execute(sock, message, args) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         
         if (args.length < 2) {
-            return await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: `╭━━━『 💕 LOVE CALCULATOR 』\n┃\n┃ ❌ Usage: ${config.bot.preffix}ship <n1> <n2>\n┃\n┃ 💡 Example:\n┃ ${config.bot.preffix}ship John Jane\n┃\n╰━━━━━━━━━━━━━━━⬣`
             });
         }
@@ -44,7 +44,7 @@ export default {
         
         const bars = '█'.repeat(Math.floor(percentage / 10)) + '▒'.repeat(10 - Math.floor(percentage / 10));
         
-        await sock.sendMessage(sender, { 
+        await sock.sendMessage(jid.chat, { 
             text: `╭━━━『 💕 LOVE SHIP 』\n┃\n┃ 👤 ${name1} 💘 ${name2}\n┃\n┃━━━━━━━━━━━━━━\n┃\n┃ 📊 [${bars}] ${percentage}%\n┃\n┃ ${emoji} ${message}\n┃\n╰━━━━━━━━━━━━━━━⬣`
         });
     }

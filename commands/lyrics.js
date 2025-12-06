@@ -1,6 +1,6 @@
 import config from '../config.js';
 import logging from '../logger.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 // Assumes 'fetch' is available (Node.js v18+), or 'node-fetch' is imported if older Node version.
 // If your environment is older, uncomment the line below:
 // import fetch from 'node-fetch'; 
@@ -13,17 +13,17 @@ export default {
     category: 'Media',
 
     async execute(sock, message, args) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         
         // 1. Input Validation
         if (args.length < 1) {
-            return await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: `╭━━━『 🎶 LYRICS SEARCH 』\n┃\n┃ ❌ Usage: ${config.bot.preffix}lyrics <Song Title/Artist>\n┃\n┃ 💡 Example:\n┃ ${config.bot.preffix}lyrics Dynasty Miia\n┃ ${config.bot.preffix}lyrics Bohemian Rhapsody\n┃\n╰━━━━━━━━━━━━━━━⬣`
             });
         }
 
         try {
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: '🎼 Searching for lyrics...' 
             });
 
@@ -55,25 +55,25 @@ export default {
                 
                 // 5. Send the result (with image if available, like in your github command)
                 if (result.image) {
-                    await sock.sendMessage(sender, {
+                    await sock.sendMessage(jid.chat, {
                         image: { url: result.image },
                         caption: lyricsText
                     });
                 } else {
-                    await sock.sendMessage(sender, { text: lyricsText });
+                    await sock.sendMessage(jid.chat, { text: lyricsText });
                 }
                 
                 logging.success(`[LYRICS] Sent lyrics for: ${result.title} by ${result.artist}`);
                 
             } else {
-                await sock.sendMessage(sender, { 
+                await sock.sendMessage(jid.chat, { 
                     text: `❌ Lyrics not found for *"${query}"*. Please try another title or artist.`
                 });
             }
 
         } catch (error) {
             logging.error(`[LYRICS] Error fetching data: ${error.message}`);
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: `❌ An unexpected error occurred while fetching the lyrics.`
             });
         }

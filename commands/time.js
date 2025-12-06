@@ -1,5 +1,5 @@
 import config from '../config.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
     name: 'time',
     description: 'Check time in different timezones',
@@ -7,7 +7,7 @@ export default {
     category: 'Utility',
     
     async execute(sock, message, args) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
 
         try {
             let messageText = '';
@@ -47,11 +47,11 @@ export default {
                 messageText = `⏰ *Time in ${city}*\n\nFeature coming soon!\n\nUse ${config.bot.preffix}time to see all major cities.`;
             }
 
-            await sock.sendMessage(sender, { text: messageText });
+            await sock.sendMessage(jid.chat, { text: messageText });
 
         } catch (error) {
             console.error('Time error:', error);
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: '❌ Error fetching time information.' 
             });
         }

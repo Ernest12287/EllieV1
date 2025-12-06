@@ -3,7 +3,7 @@ import logging from '../logger.js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-
+import { getChatJid } from '../utils/jidHelper.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ANTIWORD_DB = path.join(__dirname, '../data/antiword.json');
 
@@ -37,10 +37,10 @@ export default {
     category: 'Group',
     
     async execute(sock, message, args) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         
         if (!sender.endsWith('@g.us')) {
-            await sock.sendMessage(sender, { text: config.error.notingroups });
+            await sock.sendMessage(jid.chat, { text: config.error.notingroups });
             return;
         }
         
@@ -53,7 +53,7 @@ export default {
             );
             
             if (!senderIsAdmin) {
-                await sock.sendMessage(sender, { text: config.error.notadmin });
+                await sock.sendMessage(jid.chat, { text: config.error.notadmin });
                 return;
             }
             
@@ -63,7 +63,7 @@ export default {
             }
             
             if (args.length === 0) {
-                await sock.sendMessage(sender, { 
+                await sock.sendMessage(jid.chat, { 
                     text: `Usage:\n• ${config.bot.preffix}antiword add <word>\n• ${config.bot.preffix}antiword remove <word>\n• ${config.bot.preffix}antiword list` 
                 });
                 return;
@@ -73,7 +73,7 @@ export default {
             
             if (action === 'add') {
                 if (args.length < 2) {
-                    await sock.sendMessage(sender, { text: '❌ Specify a word.' });
+                    await sock.sendMessage(jid.chat, { text: '❌ Specify a word.' });
                     return;
                 }
                 
@@ -83,16 +83,16 @@ export default {
                     settings[sender].words.push(word);
                     saveSettings(settings);
                     
-                    await sock.sendMessage(sender, { 
+                    await sock.sendMessage(jid.chat, { 
                         text: `✅ Added "${word}" to banned list` 
                     });
                 } else {
-                    await sock.sendMessage(sender, { text: `⚠️ Already banned.` });
+                    await sock.sendMessage(jid.chat, { text: `⚠️ Already banned.` });
                 }
                 
             } else if (action === 'remove') {
                 if (args.length < 2) {
-                    await sock.sendMessage(sender, { text: '❌ Specify a word.' });
+                    await sock.sendMessage(jid.chat, { text: '❌ Specify a word.' });
                     return;
                 }
                 
@@ -103,18 +103,18 @@ export default {
                     settings[sender].words.splice(index, 1);
                     saveSettings(settings);
                     
-                    await sock.sendMessage(sender, { 
+                    await sock.sendMessage(jid.chat, { 
                         text: `✅ Removed "${word}"` 
                     });
                 } else {
-                    await sock.sendMessage(sender, { text: `⚠️ Not in list.` });
+                    await sock.sendMessage(jid.chat, { text: `⚠️ Not in list.` });
                 }
                 
             } else if (action === 'list') {
                 const words = settings[sender]?.words || [];
                 
                 if (words.length === 0) {
-                    await sock.sendMessage(sender, { text: '📋 No banned words.' });
+                    await sock.sendMessage(jid.chat, { text: '📋 No banned words.' });
                 } else {
                     let text = `╔═══════════════════╗\n`;
                     text += `║ 🚫 *BANNED WORDS* ║\n`;
@@ -126,18 +126,18 @@ export default {
                     
                     text += `\n📊 Total: ${words.length}`;
                     
-                    await sock.sendMessage(sender, { text });
+                    await sock.sendMessage(jid.chat, { text });
                 }
                 
             } else {
-                await sock.sendMessage(sender, { 
+                await sock.sendMessage(jid.chat, { 
                     text: `❌ Invalid action. Use: add, remove, list` 
                 });
             }
             
         } catch (error) {
             logging.error(`[ANTIWORD] Error: ${error.message}`);
-            await sock.sendMessage(sender, { text: '❌ Failed.' });
+            await sock.sendMessage(jid.chat, { text: '❌ Failed.' });
         }
     }
 };

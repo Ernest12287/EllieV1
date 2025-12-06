@@ -1,7 +1,7 @@
 // ===== synonym.js =====
 import config from '../config.js';
 import logging from '../logger.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
     name: 'synonym',
     aliases: ['synonyms', 'similar'],
@@ -10,10 +10,10 @@ export default {
     category: 'Info',
     
     async execute(sock, message, args) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         
         if (args.length < 1) {
-            return await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: `╭━━━『 📖 SYNONYMS 』\n┃\n┃ ❌ Usage: ${config.bot.preffix}synonym <word>\n┃\n┃ 💡 Example:\n┃ ${config.bot.preffix}synonym happy\n┃\n╰━━━━━━━━━━━━━━━⬣`
             });
         }
@@ -45,17 +45,17 @@ export default {
                 if (synonyms.length > 0) {
                     const synText = `╭━━━『 📖 SYNONYMS 』\n┃\n┃ 📝 *${word.toUpperCase()}*\n┃\n┃━━━━━━━━━━━━━━\n┃\n┃ 🔄 Similar words:\n${synonyms.map(s => `┃ • ${s}`).join('\n')}\n┃\n╰━━━━━━━━━━━━━━━⬣`;
                     
-                    await sock.sendMessage(sender, { text: synText });
+                    await sock.sendMessage(jid.chat, { text: synText });
                     logging.success(`[SYNONYM] Synonyms sent for: ${word}`);
                 } else {
-                    await sock.sendMessage(sender, { text: `❌ No synonyms found for "${word}"` });
+                    await sock.sendMessage(jid.chat, { text: `❌ No synonyms found for "${word}"` });
                 }
             } else {
-                await sock.sendMessage(sender, { text: `❌ Word not found!` });
+                await sock.sendMessage(jid.chat, { text: `❌ Word not found!` });
             }
         } catch (error) {
             logging.error(`[SYNONYM] Error: ${error.message}`);
-            await sock.sendMessage(sender, { text: '❌ Error!' });
+            await sock.sendMessage(jid.chat, { text: '❌ Error!' });
         }
     }
 };

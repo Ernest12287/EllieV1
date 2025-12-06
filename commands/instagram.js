@@ -1,5 +1,5 @@
 import config from '../config.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
   name: 'instagram',
   aliases: ['ig', 'igdl', 'insta'],
@@ -7,10 +7,10 @@ export default {
   usage: '.instagram <url>',
   category: 'Download',
   async execute(sock, message, args) {
-    const sender = message.key.remoteJid;
+    const jid = getChatJid(message);
     
     if (args.length < 1) {
-      return await sock.sendMessage(sender, { 
+      await sock.sendMessage(jid.chat, { 
         text: `┏━━━━━━━━━━━━━━━━━━┓
 ┃  📸 *INSTAGRAM DOWNLOADER* 
 ┗━━━━━━━━━━━━━━━━━━┛
@@ -31,7 +31,7 @@ export default {
     const apiUrl = `https://api.giftedtech.co.ke/api/download/instadl?apikey=gifted&url=${encodeURIComponent(url)}`;
 
     try {
-      await sock.sendMessage(sender, { 
+      await sock.sendMessage(jid.chat, { 
         text: `┏━━━━━━━━━━━━━━━━━━┓
 ┃  📸 *INSTAGRAM MAGIC* 
 ┗━━━━━━━━━━━━━━━━━━┛
@@ -57,12 +57,12 @@ _Almost there!_ 💫`
             const caption = `📸 *Instagram Media ${i + 1}/${media.length}*\n\n_Downloaded via ${config.bot.name}_ 🤖`;
             
             if (item.type === 'video' || item.url.includes('.mp4')) {
-              await sock.sendMessage(sender, {
+              await sock.sendMessage(jid.chat, {
                 video: { url: item.url },
                 caption: caption
               }, { quoted: message });
             } else {
-              await sock.sendMessage(sender, {
+              await sock.sendMessage(jid.chat, {
                 image: { url: item.url },
                 caption: caption
               }, { quoted: message });
@@ -80,19 +80,19 @@ _Almost there!_ 💫`
 _Via ${config.bot.name}_ 🤖`;
 
           if (media.type === 'video' || media.url?.includes('.mp4')) {
-            await sock.sendMessage(sender, {
+            await sock.sendMessage(jid.chat, {
               video: { url: media.url || media.video_url },
               caption: caption
             }, { quoted: message });
           } else {
-            await sock.sendMessage(sender, {
+            await sock.sendMessage(jid.chat, {
               image: { url: media.url || media.image_url },
               caption: caption
             }, { quoted: message });
           }
         }
       } else {
-        await sock.sendMessage(sender, { 
+        await sock.sendMessage(jid.chat, { 
           text: `❌ *Download Failed!*
 
 Make sure:
@@ -103,7 +103,7 @@ Make sure:
       }
     } catch (error) {
       console.error('Instagram download error:', error);
-      await sock.sendMessage(sender, { 
+      await sock.sendMessage(jid.chat, { 
         text: `❌ *Error!* ${error.message}`
       }, { quoted: message });
     }

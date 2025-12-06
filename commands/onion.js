@@ -1,5 +1,5 @@
 import config from '../config.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
     name: 'onion',
     description: 'Search for onion sites (dark web links)',
@@ -7,16 +7,16 @@ export default {
     category: 'Search',
     
     async execute(sock, message, args) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         
         if (args.length < 1) {
-            return await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: `❌ Usage: ${config.bot.preffix}onion <search term>\n\nExamples:\n• ${config.bot.preffix}onion "marketplace"\n• ${config.bot.preffix}onion "forum"\n• ${config.bot.preffix}onion "wiki"`
             });
         }
 
         try {
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: '⏳ Searching onion sites...' 
             });
 
@@ -37,13 +37,13 @@ export default {
                                `• Ahmia.fi is a safe search engine for onion sites\n\n` +
                                `🔗 *Tor Browser Download:* https://www.torproject.org/`;
 
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: messageText 
             });
 
         } catch (error) {
             console.error('Onion search error:', error);
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: '❌ Error searching onion sites. Please try again.' 
             });
         }

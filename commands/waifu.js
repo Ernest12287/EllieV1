@@ -1,6 +1,6 @@
 import config from '../config.js';
 import logging from '../logger.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
     name: 'waifu',
     aliases: ['neko', 'megumin', 'shinobu', 'awoo'],
@@ -9,7 +9,7 @@ export default {
     category: 'Anime',
     
     async execute(sock, message, args) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         const input = args[0]?.toLowerCase();
         
         const validCategories = [
@@ -24,7 +24,7 @@ export default {
         if (!input || input === 'list' || input === 'help') {
             const categoryList = validCategories.map(cat => `• ${cat}`).join('\n');
             
-            return await sock.sendMessage(sender, {
+            await sock.sendMessage(jid.chat, {
                 text: `✨ *Waifu Image Categories*\n\n` +
                       `📝 *Available Categories:*\n${categoryList}\n\n` +
                       `💡 *Usage:*\n` +
@@ -42,14 +42,14 @@ export default {
         const category = input || 'waifu';
         
         if (!validCategories.includes(category)) {
-            return await sock.sendMessage(sender, {
+            await sock.sendMessage(jid.chat, {
                 text: `❌ Invalid category: *${category}*\n\n` +
                       `💡 Type ${config.bot.preffix}waifu list to see all categories.`
             });
         }
         
         try {
-            await sock.sendMessage(sender, {
+            await sock.sendMessage(jid.chat, {
                 text: `⏳ Fetching ${category} image...`
             });
             
@@ -58,7 +58,7 @@ export default {
             const data = await response.json();
             
             if (data.url) {
-                await sock.sendMessage(sender, {
+                await sock.sendMessage(jid.chat, {
                     image: { url: data.url },
                     caption: `✨ *${category.charAt(0).toUpperCase() + category.slice(1)}*\n\n` +
                              `🔄 Want more? Use ${config.bot.preffix}waifu ${category}\n` +
@@ -67,14 +67,14 @@ export default {
                 
                 logging.success(`[WAIFU] Sent ${category} image to ${sender}`);
             } else {
-                await sock.sendMessage(sender, {
+                await sock.sendMessage(jid.chat, {
                     text: '❌ Failed to fetch waifu image. Try again!'
                 });
             }
             
         } catch (error) {
             logging.error(`[WAIFU] Error: ${error.message}`);
-            await sock.sendMessage(sender, {
+            await sock.sendMessage(jid.chat, {
                 text: `❌ Error fetching waifu image.\n\n${error.message}`
             });
         }

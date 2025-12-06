@@ -1,5 +1,5 @@
 import config from '../config.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
   name: 'removebg',
   aliases: ['rembg', 'nobg'],
@@ -7,10 +7,10 @@ export default {
   usage: '.removebg <image_url>',
   category: 'Tools',
   async execute(sock, message, args) {
-    const sender = message.key.remoteJid;
+    const jid = getChatJid(message);
     
     if (args.length < 1) {
-      return await sock.sendMessage(sender, { 
+      await sock.sendMessage(jid.chat, { 
         text: `┏━━━━━━━━━━━━━━━━━━┓
 ┃  🎭 *REMOVE BACKGROUND* 
 ┗━━━━━━━━━━━━━━━━━━┛
@@ -31,7 +31,7 @@ export default {
     const apiUrl = `https://api.giftedtech.co.ke/api/tools/removebg?apikey=gifted&url=${encodeURIComponent(imageUrl)}`;
 
     try {
-      await sock.sendMessage(sender, { 
+      await sock.sendMessage(jid.chat, { 
         text: `🎭 *Processing image...*
 
 🖼️ Analyzing...
@@ -56,12 +56,12 @@ _Please wait!_ 🤖`
 ━━━━━━━━━━━━━━━━━━
 _AI Background Removal_ 🎭`;
 
-        await sock.sendMessage(sender, {
+        await sock.sendMessage(jid.chat, {
           image: { url: data.result.image_url },
           caption: caption
         }, { quoted: message });
       } else {
-        await sock.sendMessage(sender, { 
+        await sock.sendMessage(jid.chat, { 
           text: `❌ *Failed to remove background!*
 
 Make sure:
@@ -72,7 +72,7 @@ Make sure:
       }
     } catch (error) {
       console.error('RemoveBG error:', error);
-      await sock.sendMessage(sender, { 
+      await sock.sendMessage(jid.chat, { 
         text: `❌ *Error!* ${error.message}`
       }, { quoted: message });
     }

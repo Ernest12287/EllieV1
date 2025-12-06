@@ -1,6 +1,6 @@
 import config from '../config.js';
 import os from 'os';
-
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
     name: 'info',
     description: 'Display bot and system information',
@@ -8,7 +8,7 @@ export default {
     category: 'System',
     
     async execute(sock, message) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         
         try {
             const platform = os.platform();
@@ -85,13 +85,13 @@ export default {
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Made with ❤️ using @whiskeysockets/baileys
+Made with ❤️ using baileys
             `.trim();
             
-            await sock.sendMessage(sender, { text: infoText });
+            await sock.sendMessage(jid.chat, { text: infoText });
             
         } catch (error) {
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: `❌ Could not load system information` 
             });
         }

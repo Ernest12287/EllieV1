@@ -1,12 +1,12 @@
 import config from '../config.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
   name: 'tiktok',
   description: 'Download TikTok videos with style! 🎬',
   usage: '.tiktok <url>',
   category: 'Download',
   async execute(sock, message, args) {
-    const sender = message.key.remoteJid;
+    const jid = getChatJid(message);
     
     if (args.length < 1) {
       // ... (Usage message remains the same) ...
@@ -22,7 +22,7 @@ export default {
 
     try {
       // Send exciting loading message
-      await sock.sendMessage(sender, { 
+      await sock.sendMessage(jid.chat, { 
         text: `┏━━━━━━━━━━━━━━━━━━┓
 ┃  🎬 *TIKTOK MAGIC* ┗━━━━━━━━━━━━━━━━━━┛
 
@@ -46,7 +46,7 @@ _Please wait, this won't take long!_ 💫`
         
         // ... (Send messages for video and optional audio) ...
       } else {
-        await sock.sendMessage(sender, { 
+        await sock.sendMessage(jid.chat, { 
           text: `❌ *Oops! Something went wrong!*
 
 Unable to fetch the TikTok video.
@@ -71,7 +71,7 @@ Unable to fetch the TikTok video.
           errorMessage = `Request timed out after ${TIMEOUT_MS / 1000} seconds. The API took too long to respond.`;
       }
       
-      await sock.sendMessage(sender, { 
+      await sock.sendMessage(jid.chat, { 
         text: `┏━━━━━━━━━━━━━━━━━━┓
 ┃  ⚠️ *ERROR ALERT* ┗━━━━━━━━━━━━━━━━━━┛
 

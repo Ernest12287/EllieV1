@@ -1,22 +1,18 @@
 {
   "name": "elliev1",
-  "version": "1.0.0",
-  "description": "Ellie WhatsApp Bot - A powerful and elegant WhatsApp bot with 100+ commands",
+  "version": "2.0.0",
+  "description": "Ellie WhatsApp Bot - Upgraded to Baileys v7 with LID Support",
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "start": "node main.js",
+    "start": "node index.js",
     "dev": "node --watch index.js",
-    "obfuscate": "node obfuscate.js",
-    "production": "node main.js",
     "pm2:start": "pm2 start index.js --name elliev1",
-    "pm2:start-obf": "pm2 start main.js --name elliev1",
     "pm2:stop": "pm2 stop elliev1",
     "pm2:restart": "pm2 restart elliev1",
     "pm2:delete": "pm2 delete elliev1",
     "pm2:logs": "pm2 logs elliev1",
-    "pm2:monit": "pm2 monit",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "pm2:monit": "pm2 monit"
   },
   "repository": {
     "type": "git",
@@ -25,14 +21,11 @@
   "keywords": [
     "whatsapp",
     "bot",
-    "baileys",
+    "baileys-v7",
+    "lid-support",
     "whatsapp-bot",
     "ellie",
-    "ernest",
-    "ai-bot",
-    "downloader",
-    "sticker-maker",
-    "group-management"
+    "ernest"
   ],
   "author": {
     "name": "Pease Ernest",
@@ -40,31 +33,26 @@
     "url": "https://github.com/Ernest12287"
   },
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/Ernest12287/EllieV1/issues"
-  },
-  "homepage": "https://github.com/Ernest12287/EllieV1#readme",
   "engines": {
     "node": ">=18.0.0",
     "npm": ">=8.0.0"
   },
   "dependencies": {
     "@hapi/boom": "^10.0.1",
-    "@whiskeysockets/baileys": "npm:baileys@6.7.20",
-    "axios": "^1.6.0",
-    "dotenv": "^17.2.3",
+    "axios": "^1.7.9",
+    "baileys": "^7.0.0-rc.9",
+    "dotenv": "^16.4.7",
     "ernest-logger": "^1.1.0",
+    "javascript-obfuscator": "^5.0.0",
     "jimp": "^1.6.0",
     "link-preview-js": "^3.1.0",
     "node-fetch": "^3.3.2",
     "pm2": "^6.0.13",
     "qrcode": "^1.5.4",
+    "qrcode-terminal": "^0.12.0",
     "sharp": "^0.34.4",
     "wa-sticker-formatter": "^4.4.4",
     "yt-dlp-wrap": "^2.3.12"
-  },
-  "devDependencies": {
-    "javascript-obfuscator": "^4.1.0"
   },
   "optionalDependencies": {
     "bufferutil": "^4.0.8",

@@ -1,5 +1,5 @@
 import config from '../config.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
     name: 'currency',
     description: 'Convert between currencies',
@@ -7,16 +7,16 @@ export default {
     category: 'Finance',
     
     async execute(sock, message, args) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         
         if (args.length < 3) {
-            return await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: `❌ Usage: ${config.bot.preffix}currency <amount> <from> to <to>\n\nExamples:\n• ${config.bot.preffix}currency 100 USD to EUR\n• ${config.bot.preffix}currency 1500 JPY to USD\n• ${config.bot.preffix}currency 50 GBP to KES`
             });
         }
 
         try {
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: '⏳ Converting currency...' 
             });
 
@@ -38,16 +38,16 @@ export default {
                                    `📊 Exchange Rate: 1 ${fromCurrency} = ${rate.toFixed(4)} ${toCurrency}\n` +
                                    `📅 Last updated: ${new Date(data.date).toLocaleDateString()}`;
 
-                await sock.sendMessage(sender, { text: messageText });
+                await sock.sendMessage(jid.chat, { text: messageText });
             } else {
-                await sock.sendMessage(sender, { 
+                await sock.sendMessage(jid.chat, { 
                     text: '❌ Invalid currency codes or service unavailable.' 
                 });
             }
 
         } catch (error) {
             console.error('Currency error:', error);
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: '❌ Error converting currency. Please check the format.' 
             });
         }

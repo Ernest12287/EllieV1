@@ -1,4 +1,6 @@
 import config from '../config.js';
+import { getChatJid } from '../utils/jidHelper.js';
+ // ONE LINE CHANGE!
 
 export default {
     name: '8ball',
@@ -8,10 +10,10 @@ export default {
     category: 'Fun',
     
     async execute(sock, message, args) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         
         if (args.length < 1) {
-            return await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: `╭━━━『 🎱 MAGIC 8BALL 』\n┃\n┃ ❌ Ask a yes/no question!\n┃\n┃ 💡 Example:\n┃ ${config.bot.preffix}8ball Will I be rich?\n┃\n╰━━━━━━━━━━━━━━━⬣`
             });
         }
@@ -27,7 +29,7 @@ export default {
         const answer = responses[Math.floor(Math.random() * responses.length)];
         const question = args.join(' ');
         
-        await sock.sendMessage(sender, { 
+        await sock.sendMessage(jid.chat, { 
             text: `╭━━━『 🎱 MAGIC 8BALL 』\n┃\n┃ ❓ ${question}\n┃\n┃ 🎱 ${answer}\n┃\n╰━━━━━━━━━━━━━━━⬣`
         });
     }

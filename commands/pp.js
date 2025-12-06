@@ -1,11 +1,11 @@
 import config from '../config.js';
 import logging from '../logger.js';
-import { downloadMediaMessage } from '@whiskeysockets/baileys';
+import { downloadMediaMessage } from 'baileys';
 import { Jimp } from 'jimp';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-
+import { getChatJid } from '../utils/jidHelper.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const TEMP_DIR = path.join(__dirname, '../temp');
 
@@ -21,13 +21,13 @@ export default {
     category: 'Owner',
     
     async execute(sock, message, args) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         const senderNumber = message.key.participant || message.key.remoteJid;
         const senderJid = senderNumber.split('@')[0]; // Extract just the number
         
         // Check if sender is the owner - FIXED: Use config.user.number
         if (senderJid !== config.user.number) {
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: `❌ *Access Denied*\n\nThis command is only available to the bot owner.\n\n👤 Owner: ${config.user.name}\n📱 Number: ${config.user.number}` 
             });
             logging.warn(`[PP] Unauthorized access attempt by ${senderJid}`);
@@ -40,13 +40,13 @@ export default {
             const imageMessage = quotedMessage?.imageMessage || message.message?.imageMessage;
             
             if (!imageMessage) {
-                await sock.sendMessage(sender, { 
+                await sock.sendMessage(jid.chat, { 
                     text: '❌ *No Image Found*\n\nPlease reply to an image or send an image with the command.\n\nUsage: `' + config.bot.preffix + 'pp` (reply to image)' 
                 });
                 return;
             }
             
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: '⏳ *Processing...*\n\nDownloading and cropping image...' 
             });
             
@@ -102,7 +102,7 @@ export default {
                 logging.warn(`[PP] Cleanup warning: ${cleanupError.message}`);
             }
             
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: '✅ *Profile Picture Updated!*\n\n🖼️ Image cropped to square and set as bot profile picture.' 
             });
             
@@ -111,7 +111,7 @@ export default {
         } catch (error) {
             logging.error(`[PP] Error: ${error.message}`);
             console.error('Full PP error:', error);
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: '❌ *Failed to Update Profile Picture*\n\nError: ' + error.message 
             });
         }

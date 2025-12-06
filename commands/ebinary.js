@@ -1,6 +1,6 @@
 import config from '../config.js';
 import logging from '../logger.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
     name: 'ebinary',
     aliases: ['encodebinary', 'tobinary'],
@@ -9,16 +9,16 @@ export default {
     category: 'Utility',
     
     async execute(sock, message, args) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         
         if (args.length < 1) {
-            return await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: `╭━━━『 💾 BINARY ENCODE 』\n┃\n┃ ❌ Usage: ${config.bot.preffix}ebinary <text>\n┃\n┃ 💡 Example:\n┃ ${config.bot.preffix}ebinary Hello\n┃\n╰━━━━━━━━━━━━━━━⬣`
             });
         }
 
         try {
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: '💾 Encoding to binary...' 
             });
 
@@ -31,17 +31,17 @@ export default {
             if (data.success && data.result) {
                 const resultText = `╭━━━『 💾 BINARY ENCODED 』\n┃\n┃ 📝 Original:\n┃ ${text}\n┃\n┃━━━━━━━━━━━━━━\n┃\n┃ 🔢 Binary:\n┃ ${data.result}\n┃\n╰━━━━━━━━━━━━━━━⬣\n\n_${config.bot.name}_`;
                 
-                await sock.sendMessage(sender, { text: resultText });
+                await sock.sendMessage(jid.chat, { text: resultText });
                 logging.success(`[EBINARY] Text encoded to binary`);
             } else {
-                await sock.sendMessage(sender, { 
+                await sock.sendMessage(jid.chat, { 
                     text: '❌ Failed to encode!' 
                 });
             }
 
         } catch (error) {
             logging.error(`[EBINARY] Error: ${error.message}`);
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: `❌ Error encoding!` 
             });
         }

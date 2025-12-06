@@ -1,6 +1,6 @@
 import config from '../config.js';
 import logging from '../logger.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
     name: 'advice',
     aliases: ['tip', 'wisdom'],
@@ -9,10 +9,10 @@ export default {
     category: 'Fun',
     
     async execute(sock, message, args) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         
         try {
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: '💡 Getting advice...' 
             });
 
@@ -23,17 +23,17 @@ export default {
             if (data && data.slip && data.slip.advice) {
                 const adviceText = `╭━━━『 💡 ADVICE 』\n┃\n┃ ${data.slip.advice}\n┃\n╰━━━━━━━━━━━━━━━⬣\n\n🎯 Advice #${data.slip.id}\n_${config.bot.name}_`;
                 
-                await sock.sendMessage(sender, { text: adviceText });
+                await sock.sendMessage(jid.chat, { text: adviceText });
                 logging.success(`[ADVICE] Sent advice #${data.slip.id}`);
             } else {
-                await sock.sendMessage(sender, { 
+                await sock.sendMessage(jid.chat, { 
                     text: '❌ Could not fetch advice. Try again!' 
                 });
             }
 
         } catch (error) {
             logging.error(`[ADVICE] Error: ${error.message}`);
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: '❌ Failed to fetch advice.' 
             });
         }

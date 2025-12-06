@@ -1,6 +1,6 @@
 import config from '../config.js';
 import logging from '../logger.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
     name: 'web2zip',
     aliases: ['webzip', 'downloadweb'],
@@ -9,16 +9,16 @@ export default {
     category: 'Utility',
     
     async execute(sock, message, args) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         
         if (args.length < 1) {
-            return await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: `╭━━━『 📦 WEB TO ZIP 』\n┃\n┃ ❌ Usage: ${config.bot.preffix}web2zip <url>\n┃\n┃ 💡 Example:\n┃ ${config.bot.preffix}web2zip https://example.com\n┃\n╰━━━━━━━━━━━━━━━⬣`
             });
         }
 
         try {
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: '📦 Downloading website...' 
             });
 
@@ -33,7 +33,7 @@ export default {
             const data = await response.json();
 
             if (data.success && data.download_url) {
-                await sock.sendMessage(sender, {
+                await sock.sendMessage(jid.chat, {
                     document: { url: data.download_url },
                     mimetype: 'application/zip',
                     fileName: `website_${Date.now()}.zip`,
@@ -42,14 +42,14 @@ export default {
                 
                 logging.success(`[WEB2ZIP] Website downloaded: ${url}`);
             } else {
-                await sock.sendMessage(sender, { 
+                await sock.sendMessage(jid.chat, { 
                     text: '❌ Failed to download website!' 
                 });
             }
 
         } catch (error) {
             logging.error(`[WEB2ZIP] Error: ${error.message}`);
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: `❌ Error downloading website!` 
             });
         }

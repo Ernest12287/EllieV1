@@ -1,5 +1,5 @@
 import config from '../config.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
   name: 'gpt4o',
   aliases: ['gpt4', 'chatgpt4'],
@@ -7,10 +7,10 @@ export default {
   usage: '.gpt4o <question>',
   category: 'AI',
   async execute(sock, message, args) {
-    const sender = message.key.remoteJid;
+    const jid = getChatJid(message);
     
     if (args.length < 1) {
-      return await sock.sendMessage(sender, { 
+      await sock.sendMessage(jid.chat, { 
         text: `┏━━━━━━━━━━━━━━━━━━┓
 ┃  🤖 *GPT-4o AI* 
 ┗━━━━━━━━━━━━━━━━━━┛
@@ -31,7 +31,7 @@ export default {
     const apiUrl = `https://api.giftedtech.co.ke/api/ai/gpt4o?apikey=gifted&q=${encodeURIComponent(question)}`;
 
     try {
-      await sock.sendMessage(sender, { 
+      await sock.sendMessage(jid.chat, { 
         text: `┏━━━━━━━━━━━━━━━━━━┓
 ┃  🤖 *GPT-4o THINKING...* 
 ┗━━━━━━━━━━━━━━━━━━┛
@@ -47,7 +47,7 @@ _Please wait!_ ✨`
       const data = await response.json();
 
       if (data.success && data.result) {
-        await sock.sendMessage(sender, { 
+        await sock.sendMessage(jid.chat, { 
           text: `┏━━━━━━━━━━━━━━━━━━┓
 ┃  🤖 *GPT-4o RESPONSE* 
 ┗━━━━━━━━━━━━━━━━━━┛
@@ -65,7 +65,7 @@ ${data.result}
 _Powered by OpenAI GPT-4o_ 🧠`
         }, { quoted: message });
       } else {
-        await sock.sendMessage(sender, { 
+        await sock.sendMessage(jid.chat, { 
           text: `❌ *AI Error!*
 
 Unable to get response from GPT-4o.
@@ -74,7 +74,7 @@ Please try again!`
       }
     } catch (error) {
       console.error('GPT-4o error:', error);
-      await sock.sendMessage(sender, { 
+      await sock.sendMessage(jid.chat, { 
         text: `❌ *Error!* ${error.message}`
       }, { quoted: message });
     }

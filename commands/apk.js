@@ -1,15 +1,15 @@
 import config from '../config.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
   name: 'apk',
   description: 'Download Android APK files! 📱',
   usage: '.apk <app name>',
   category: 'Download',
   async execute(sock, message, args) {
-    const sender = message.key.remoteJid;
+    const jid = getChatJid(message);
     
     if (args.length < 1) {
-      return await sock.sendMessage(sender, { 
+      await sock.sendMessage(jid.chat, { 
         text: `┏━━━━━━━━━━━━━━━━━━┓
 ┃  📱 *APK DOWNLOADER* 
 ┗━━━━━━━━━━━━━━━━━━┛
@@ -32,7 +32,7 @@ export default {
     const apiUrl = `https://api.giftedtech.co.ke/api/download/apkdl?apikey=gifted&appName=${encodeURIComponent(appName)}`;
 
     try {
-      await sock.sendMessage(sender, { 
+      await sock.sendMessage(jid.chat, { 
         text: `┏━━━━━━━━━━━━━━━━━━┓
 ┃  📱 *APK SEARCH* 
 ┗━━━━━━━━━━━━━━━━━━┛
@@ -67,7 +67,7 @@ _This might take a moment!_ ⚡`
 ━━━━━━━━━━━━━━━━━━
 _Downloaded via ${config.bot.name}_ 🤖`;
 
-        await sock.sendMessage(sender, {
+        await sock.sendMessage(jid.chat, {
           document: { url: app.download_url },
           fileName: `${app.appname}.apk`,
           mimetype: app.mimetype,
@@ -84,7 +84,7 @@ _Downloaded via ${config.bot.name}_ 🤖`;
           }
         }, { quoted: message });
 
-        await sock.sendMessage(sender, {
+        await sock.sendMessage(jid.chat, {
           text: `✅ *APK Sent Successfully!*
 
 📱 File: ${app.appname}.apk
@@ -98,7 +98,7 @@ _Downloaded via ${config.bot.name}_ 🤖`;
 💚 Enjoy your app!`
         }, { quoted: message });
       } else {
-        await sock.sendMessage(sender, { 
+        await sock.sendMessage(jid.chat, { 
           text: `❌ *App Not Found!*
 
 Couldn't find "${appName}"
@@ -113,7 +113,7 @@ Couldn't find "${appName}"
       }
     } catch (error) {
       console.error('APK download error:', error);
-      await sock.sendMessage(sender, { 
+      await sock.sendMessage(jid.chat, { 
         text: `❌ *Download Failed!*
 
 Error: ${error.message}

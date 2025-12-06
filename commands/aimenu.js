@@ -1,5 +1,5 @@
 import config from '../config.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
     name: 'aimenu',
     description: 'List AI models',
@@ -7,7 +7,7 @@ export default {
     category: 'AI',
     
     async execute(sock, message) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         const prefix = config.bot.preffix;
         
         const menuText = `
@@ -36,6 +36,6 @@ ${prefix}gemini Explain quantum physics
 🤖 Powered by ${config.bot.name}
         `.trim();
         
-        await sock.sendMessage(sender, { text: menuText });
+        await sock.sendMessage(jid.chat, { text: menuText });
     }
 };

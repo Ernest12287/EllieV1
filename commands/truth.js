@@ -1,6 +1,6 @@
 // ===== truth.js =====
 import config from '../config.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
     name: 'truth',
     description: 'Get a random truth question',
@@ -8,7 +8,7 @@ export default {
     category: 'Fun',
     
     async execute(sock, message, args) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         
         const truths = [
             'What is your biggest secret?',
@@ -25,7 +25,7 @@ export default {
         
         const truth = truths[Math.floor(Math.random() * truths.length)];
         
-        await sock.sendMessage(sender, { 
+        await sock.sendMessage(jid.chat, { 
             text: `╭━━━『 🤔 TRUTH 』\n┃\n┃ ${truth}\n┃\n╰━━━━━━━━━━━━━━━⬣`
         });
     }

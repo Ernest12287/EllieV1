@@ -1,6 +1,6 @@
 import config from '../config.js';
 import logging from '../logger.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
     name: 'crypto',
     aliases: ['bitcoin', 'btc', 'coin'],
@@ -9,11 +9,11 @@ export default {
     category: 'Finance',
     
     async execute(sock, message, args) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         const coin = (args[0] || 'bitcoin').toLowerCase();
         
         try {
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: '💰 Fetching crypto prices...' 
             });
 
@@ -28,17 +28,17 @@ export default {
                 
                 const cryptoText = `╭━━━『 💰 CRYPTO PRICE 』\n┃\n┃ 🪙 *${coin.toUpperCase()}*\n┃\n┃━━━━━━━━━━━━━━\n┃\n┃ 💵 USD: $${price.usd.toLocaleString()}\n┃ 💶 EUR: €${price.eur.toLocaleString()}\n┃ ₿ BTC: ${price.btc}\n┃\n┃ ${emoji} 24h Change: ${change}%\n┃ 📊 Market Cap: $${(price.usd_market_cap / 1e9).toFixed(2)}B\n┃\n╰━━━━━━━━━━━━━━━⬣\n\n_${config.bot.name} | CoinGecko_`;
                 
-                await sock.sendMessage(sender, { text: cryptoText });
+                await sock.sendMessage(jid.chat, { text: cryptoText });
                 logging.success(`[CRYPTO] Sent price for: ${coin}`);
             } else {
-                await sock.sendMessage(sender, { 
+                await sock.sendMessage(jid.chat, { 
                     text: `❌ Crypto *"${coin}"* not found!\n\n💡 Try: bitcoin, ethereum, dogecoin, cardano` 
                 });
             }
 
         } catch (error) {
             logging.error(`[CRYPTO] Error: ${error.message}`);
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: '❌ Failed to fetch crypto prices.' 
             });
         }

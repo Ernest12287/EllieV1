@@ -1,5 +1,5 @@
 import config from '../config.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
     name: 'define',
     description: 'Look up word definitions and synonyms',
@@ -7,16 +7,16 @@ export default {
     category: 'Education',
     
     async execute(sock, message, args) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         
         if (args.length < 1) {
-            return await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: `❌ Usage: ${config.bot.preffix}define <word>\n\nExamples:\n• ${config.bot.preffix}define "serendipity"\n• ${config.bot.preffix}define "ephemeral"\n• ${config.bot.preffix}define "resilient"`
             });
         }
 
         try {
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: '⏳ Looking up word...' 
             });
 
@@ -28,7 +28,7 @@ export default {
             const data = await response.json();
 
             if (data.title === 'No Definitions Found') {
-                return await sock.sendMessage(sender, { 
+                await sock.sendMessage(jid.chat, { 
                     text: `❌ No definition found for "${word}". Check spelling.` 
                 });
             }
@@ -53,11 +53,11 @@ export default {
                 messageText += '\n';
             });
 
-            await sock.sendMessage(sender, { text: messageText });
+            await sock.sendMessage(jid.chat, { text: messageText });
 
         } catch (error) {
             console.error('Dictionary error:', error);
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: '❌ Error looking up word. Please try again.' 
             });
         }

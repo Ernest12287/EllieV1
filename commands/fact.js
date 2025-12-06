@@ -1,6 +1,6 @@
 import config from '../config.js';
 import logging from '../logger.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
     name: 'fact',
     aliases: ['facts', 'randomfact'],
@@ -9,10 +9,10 @@ export default {
     category: 'Fun',
     
     async execute(sock, message, args) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         
         try {
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: '🧠 Fetching fact...' 
             });
 
@@ -23,17 +23,17 @@ export default {
             if (data && data.text) {
                 const factText = `╭━━━『 🧠 DID YOU KNOW? 』\n┃\n┃ ${data.text}\n┃\n╰━━━━━━━━━━━━━━━⬣\n\n💡 Random Fact\n_${config.bot.name}_`;
                 
-                await sock.sendMessage(sender, { text: factText });
+                await sock.sendMessage(jid.chat, { text: factText });
                 logging.success(`[FACT] Sent random fact`);
             } else {
-                await sock.sendMessage(sender, { 
+                await sock.sendMessage(jid.chat, { 
                     text: '❌ Could not fetch fact. Try again!' 
                 });
             }
 
         } catch (error) {
             logging.error(`[FACT] Error: ${error.message}`);
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: '❌ Failed to fetch fact.' 
             });
         }

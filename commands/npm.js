@@ -1,6 +1,6 @@
 import config from '../config.js';
 import logging from '../logger.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
     name: 'npm',
     aliases: ['npmjs', 'package'],
@@ -9,16 +9,16 @@ export default {
     category: 'Tech',
     
     async execute(sock, message, args) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         
         if (args.length < 1) {
-            return await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: `╭━━━『 📦 NPM SEARCH 』\n┃\n┃ ❌ Usage: ${config.bot.preffix}npm <package>\n┃\n┃ 💡 Examples:\n┃ ${config.bot.preffix}npm express\n┃ ${config.bot.preffix}npm react\n┃ ${config.bot.preffix}npm axios\n┃\n╰━━━━━━━━━━━━━━━⬣`
             });
         }
 
         try {
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: '📦 Searching NPM...' 
             });
 
@@ -33,17 +33,17 @@ export default {
                 
                 const npmText = `╭━━━『 📦 NPM PACKAGE 』\n┃\n┃ 📦 *${data.name}*\n┃ v${latest}\n┃\n┃━━━━━━━━━━━━━━\n┃\n┃ 📝 ${data.description || 'No description'}\n┃\n┃ 👤 Author: ${info.author?.name || 'Unknown'}\n┃ 📜 License: ${info.license || 'Unknown'}\n┃ 📅 Updated: ${new Date(data.time[latest]).toDateString()}\n┃\n┃━━━━━━━━━━━━━━\n┃\n┃ 💾 Install:\n┃ npm i ${data.name}\n┃\n┃ 🔗 ${`https://npmjs.com/package/${data.name}`}\n┃\n╰━━━━━━━━━━━━━━━⬣\n\n_${config.bot.name}_`;
                 
-                await sock.sendMessage(sender, { text: npmText });
+                await sock.sendMessage(jid.chat, { text: npmText });
                 logging.success(`[NPM] Sent info for: ${packageName}`);
             } else {
-                await sock.sendMessage(sender, { 
+                await sock.sendMessage(jid.chat, { 
                     text: `❌ Package *"${packageName}"* not found on NPM!` 
                 });
             }
 
         } catch (error) {
             logging.error(`[NPM] Error: ${error.message}`);
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: '❌ Failed to fetch NPM package.' 
             });
         }

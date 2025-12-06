@@ -4,7 +4,7 @@ import fetch from 'node-fetch';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-
+import { getChatJid } from '../utils/jidHelper.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -15,11 +15,11 @@ export default {
     category: 'Downloader',
 
     async execute(sock, message, args) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         const url = args[0];
 
         if (!url) {
-            await sock.sendMessage(sender, { text: '❌ Please provide an XVideos URL.\nExample: `.xvdown https://www.xnx.com/video...`' });
+            await sock.sendMessage(jid.chat, { text: '❌ Please provide an XVideos URL.\nExample: `.xvdown https://www.xnx.com/video...`' });
             return;
         }
 
@@ -33,7 +33,7 @@ export default {
 
             if (!data.success || !data.result) {
                 logging.error('Invalid API response from GiftedTech');
-                await sock.sendMessage(sender, { text: '⚠️ Failed to fetch video info. Try again later.' });
+                await sock.sendMessage(jid.chat, { text: '⚠️ Failed to fetch video info. Try again later.' });
                 return;
             }
 
@@ -57,7 +57,7 @@ ${sizeInMB > 70 ? download_url : ''}
 
             if (sizeInMB > 70) {
                 // Big file: send info + link only
-                await sock.sendMessage(sender, {
+                await sock.sendMessage(jid.chat, {
                     image: { url: thumbnail },
                     caption
                 });
@@ -84,7 +84,7 @@ ${sizeInMB > 70 ? download_url : ''}
 
             logging.success(`Download complete: ${fileName}`);
 
-            await sock.sendMessage(sender, {
+            await sock.sendMessage(jid.chat, {
                 video: fs.readFileSync(filePath),
                 caption
             });
@@ -97,7 +97,7 @@ ${sizeInMB > 70 ? download_url : ''}
 
         } catch (err) {
             logging.error(err);
-            await sock.sendMessage(sender, { text: '❌ Something went wrong while processing your request.' });
+            await sock.sendMessage(jid.chat, { text: '❌ Something went wrong while processing your request.' });
         }
     }
 };

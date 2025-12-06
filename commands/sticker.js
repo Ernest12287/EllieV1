@@ -1,11 +1,11 @@
 import config from '../config.js';
 import logging from '../logger.js';
-import { downloadMediaMessage } from '@whiskeysockets/baileys';
+import { downloadMediaMessage } from 'baileys';
 import { Sticker } from 'wa-sticker-formatter';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-
+import { getChatJid } from '../utils/jidHelper.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const TEMP_DIR = path.join(__dirname, '../temp');
 
@@ -22,7 +22,7 @@ export default {
     category: 'Convert',
     
     async execute(sock, message, args) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         
         try {
             // Check if message is a reply to an image/video or contains an image/video
@@ -31,13 +31,13 @@ export default {
             const videoMessage = quotedMessage?.videoMessage || message.message?.videoMessage;
             
             if (!imageMessage && !videoMessage) {
-                await sock.sendMessage(sender, { 
+                await sock.sendMessage(jid.chat, { 
                     text: '❌ *No Media Found*\n\nPlease reply to an image or video (max 10s) with this command.\n\nUsage:\n• `' + config.bot.preffix + 'sticker` (reply to media)\n• `' + config.bot.preffix + 'sticker <pack> <author>`' 
                 });
                 return;
             }
             
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: '⏳ *Creating Sticker...*\n\nPlease wait...' 
             });
             
@@ -69,7 +69,7 @@ export default {
             const stickerBuffer = await sticker.toBuffer();
             
             // Send sticker
-            await sock.sendMessage(sender, {
+            await sock.sendMessage(jid.chat, {
                 sticker: stickerBuffer
             });
             
@@ -88,7 +88,7 @@ export default {
                 errorMsg += 'Error: ' + error.message;
             }
             
-            await sock.sendMessage(sender, { text: errorMsg });
+            await sock.sendMessage(jid.chat, { text: errorMsg });
         }
     }
 };

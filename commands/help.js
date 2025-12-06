@@ -1,6 +1,6 @@
 import config from '../config.js';
 import logging from '../logger.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
     name: 'help',
     aliases: ['h', 'cmd'],
@@ -9,7 +9,7 @@ export default {
     category: 'Info',
     
     async execute(sock, message, args, commands) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         const prefixes = config.bot.prefixes || [config.bot.preffix || '.'];
         const defaultPrefix = config.bot.defaultPrefix || prefixes[0];
         const allowNoPrefix = config.bot.allowNoPrefix;
@@ -102,7 +102,7 @@ Telegram: ${config.social.telegram}
 _${config.bot.name} v${config.bot.version}_
 _Made with 💚 by ${config.creator.name}_`;
             
-            return await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: helpText,
                 contextInfo: {
                     externalAdReply: {
@@ -173,7 +173,7 @@ ${defaultPrefix}menu <category> - View category
 
 _Try checking the spelling or use ${defaultPrefix}menu_`;
             
-            return await sock.sendMessage(sender, { text: notFoundText });
+            await sock.sendMessage(jid.chat, { text: notFoundText });
         }
 
         // Show BEAUTIFUL detailed command help
@@ -232,7 +232,7 @@ _Try checking the spelling or use ${defaultPrefix}menu_`;
         cmdHelp += `━━━━━━━━━━━━━━━━━━━━━━\n\n`;
         cmdHelp += `_${config.bot.name} • ${command.category || 'General'}_`;
 
-        await sock.sendMessage(sender, { 
+        await sock.sendMessage(jid.chat, { 
             text: cmdHelp,
             contextInfo: {
                 externalAdReply: {

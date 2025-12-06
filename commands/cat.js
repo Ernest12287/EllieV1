@@ -1,6 +1,6 @@
 import config from '../config.js';
 import logging from '../logger.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
     name: 'cat',
     aliases: ['kitty', 'kitten'],
@@ -9,10 +9,10 @@ export default {
     category: 'Fun',
     
     async execute(sock, message, args) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         
         try {
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: '🐱 Fetching cat...' 
             });
 
@@ -23,21 +23,21 @@ export default {
             if (data && data[0] && data[0].url) {
                 const caption = `╭━━━『 🐱 MEOW 』\n┃\n┃ 😻 Random Cat\n┃\n╰━━━━━━━━━━━━━━━⬣\n\n_${config.bot.name}_`;
                 
-                await sock.sendMessage(sender, {
+                await sock.sendMessage(jid.chat, {
                     image: { url: data[0].url },
                     caption: caption
                 });
                 
                 logging.success(`[CAT] Sent cat image`);
             } else {
-                await sock.sendMessage(sender, { 
+                await sock.sendMessage(jid.chat, { 
                     text: '❌ Could not fetch cat. Try again!' 
                 });
             }
 
         } catch (error) {
             logging.error(`[CAT] Error: ${error.message}`);
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: '❌ Failed to fetch cat image.' 
             });
         }

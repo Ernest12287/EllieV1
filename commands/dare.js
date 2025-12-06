@@ -1,6 +1,6 @@
 // ===== dare.js =====
 import config from '../config.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
     name: 'dare',
     description: 'Get a random dare challenge',
@@ -8,7 +8,7 @@ export default {
     category: 'Fun',
     
     async execute(sock, message, args) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         
         const dares = [
             'Send a voice message singing a song',
@@ -25,7 +25,7 @@ export default {
         
         const dare = dares[Math.floor(Math.random() * dares.length)];
         
-        await sock.sendMessage(sender, { 
+        await sock.sendMessage(jid.chat, { 
             text: `╭━━━『 😈 DARE 』\n┃\n┃ ${dare}\n┃\n╰━━━━━━━━━━━━━━━⬣`
         });
     }

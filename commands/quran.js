@@ -5,9 +5,9 @@ export const quranCommand = {
     category: 'Quran',
 
     async execute(sock, message, args) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         if (!args[0]) {
-            return await sock.sendMessage(sender, {
+            await sock.sendMessage(jid.chat, {
                 text: `❌ Usage: .quran <surah>:<verse>\nExample: .quran 1:1`
             });
         }
@@ -34,17 +34,17 @@ export const quranCommand = {
                 }
                 // Send in chunks if too long
                 if (messageText.length > 3000) {
-                    await sock.sendMessage(sender, { text: messageText });
+                    await sock.sendMessage(jid.chat, { text: messageText });
                     messageText = `📖 *Quran - Surah ${surah} (Continued)*\n\n`;
                 }
             }
 
             if (messageText.length > 50) {
-                await sock.sendMessage(sender, { text: messageText });
+                await sock.sendMessage(jid.chat, { text: messageText });
             }
 
         } catch (err) {
-            await sock.sendMessage(sender, {
+            await sock.sendMessage(jid.chat, {
                 text: `❌ Error fetching verse: ${err.message}\nRead online: https://quran.com/${args[0].replace(':', '/')}`
             });
         }

@@ -728,7 +728,7 @@ export default {
     category: 'Category',
     
     async execute(sock, message, args) {
-        const sender = message.key.remoteJid;
+        const sender = getChatJid(message);
         await sock.sendMessage(sender, { 
             text: 'Response here' 
         });
@@ -818,7 +818,7 @@ copyright notice and this permission notice appear in all copies.
 
 ## 🙏 Acknowledgments
 
-- [@WhiskeySockets/Baileys](https://github.com/WhiskeySockets/Baileys) - WhatsApp Web API
+- [baileys](https://github.com/WhiskeySockets/Baileys) - WhatsApp Web API
 - [Ernest Logger](https://www.npmjs.com/package/ernest-logger) - Beautiful console logging
 - All contributors and supporters
 

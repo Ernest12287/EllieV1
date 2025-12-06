@@ -1,7 +1,7 @@
 import config from '../config.js';
 import logging from '../logger.js';
 import { getAFKData } from './afk.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 function formatAFKTime(timestamp) {
     const now = Date.now();
     const diff = now - timestamp;
@@ -30,7 +30,7 @@ export default {
     category: 'Personal',
     
     async execute(sock, message, args) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         const isGroup = sender.endsWith('@g.us');
         
         try {
@@ -38,7 +38,7 @@ export default {
             const afkUsers = Object.entries(afkData);
             
             if (afkUsers.length === 0) {
-                await sock.sendMessage(sender, {
+                await sock.sendMessage(jid.chat, {
                     text: '📭 *No AFK Users*\n\nThere are currently no users in AFK mode.'
                 }, { quoted: message });
                 return;
@@ -62,7 +62,7 @@ export default {
             }
             
             if (filteredUsers.length === 0 && isGroup) {
-                await sock.sendMessage(sender, {
+                await sock.sendMessage(jid.chat, {
                     text: '📭 *No AFK Users in This Group*\n\nNo group members are currently AFK.'
                 }, { quoted: message });
                 return;
@@ -100,7 +100,7 @@ export default {
             listText += `═══════════════════\n`;
             listText += `_Use ${config.bot.preffix}afk [reason] to go AFK_`;
             
-            await sock.sendMessage(sender, {
+            await sock.sendMessage(jid.chat, {
                 text: listText,
                 mentions: mentions
             }, { quoted: message });
@@ -109,7 +109,7 @@ export default {
             
         } catch (error) {
             logging.error(`[AFKLIST] Error: ${error.message}`);
-            await sock.sendMessage(sender, {
+            await sock.sendMessage(jid.chat, {
                 text: '❌ *Error*\n\nFailed to retrieve AFK list.'
             }, { quoted: message });
         }

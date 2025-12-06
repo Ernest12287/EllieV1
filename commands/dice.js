@@ -1,6 +1,6 @@
 // ===== dice.js =====
 import config from '../config.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
     name: 'dice',
     aliases: ['roll', 'rolldice'],
@@ -9,11 +9,11 @@ export default {
     category: 'Fun',
     
     async execute(sock, message, args) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         
         const diceCount = parseInt(args[0]) || 1;
         if (diceCount > 10 || diceCount < 1) {
-            return await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: '❌ Roll 1-10 dice only!' 
             });
         }
@@ -28,7 +28,7 @@ export default {
             total += roll;
         }
         
-        await sock.sendMessage(sender, { 
+        await sock.sendMessage(jid.chat, { 
             text: `╭━━━『 🎲 DICE ROLL 』\n┃\n${results.map(r => `┃ ${r}`).join('\n')}\n┃\n┃ 🎯 Total: ${total}\n┃\n╰━━━━━━━━━━━━━━━⬣`
         });
     }

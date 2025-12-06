@@ -1,5 +1,5 @@
 import config from '../config.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
     name: 'bsearch',
     description: 'Search the Bible for keywords',
@@ -7,16 +7,16 @@ export default {
     category: 'Bible',
     
     async execute(sock, message, args) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         
         if (args.length < 1) {
-            return await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: `❌ Usage: ${config.bot.preffix}bsearch <keyword>\n\nExamples:\n• ${config.bot.preffix}bsearch love\n• ${config.bot.preffix}bsearch faith hope\n• ${config.bot.preffix}bsearch "the lord is my shepherd"`
             });
         }
 
         try {
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: '⏳ Searching Bible...' 
             });
 
@@ -39,19 +39,19 @@ export default {
                     messageText += `... and ${data.verses.length - maxResults} more results.`;
                 }
 
-                await sock.sendMessage(sender, { 
+                await sock.sendMessage(jid.chat, { 
                     text: messageText 
                 });
 
             } else {
-                await sock.sendMessage(sender, { 
+                await sock.sendMessage(jid.chat, { 
                     text: `❌ No results found for "${query}"` 
                 });
             }
 
         } catch (error) {
             console.error('Bible search error:', error);
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: '❌ Error searching Bible. Please try again.' 
             });
         }

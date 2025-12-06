@@ -1,6 +1,6 @@
 import config from '../config.js';
 import logging from '../logger.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 // ============================================
 // PREFIX TEST COMMAND
 // Demonstrates multi-prefix functionality
@@ -13,7 +13,7 @@ export default {
     category: 'Info',
     
     async execute(sock, message, args) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         
         try {
             const prefixes = config.bot.prefixes || ['.'];
@@ -82,7 +82,7 @@ export default {
             response += `┃  ${config.bot.name}  ┃\n`;
             response += `╰━━━━━━━━━━━━━━━━━━━━━━╯`;
             
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: response 
             }, { quoted: message });
             
@@ -90,7 +90,7 @@ export default {
             
         } catch (error) {
             logging.error(`[PREFIX] Error: ${error.message}`);
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: '❌ Failed to get prefix information.' 
             }, { quoted: message });
         }

@@ -1,5 +1,5 @@
 import config from '../config.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
   name: 'gemini',
   aliases: ['geminipro', 'bard'],
@@ -7,10 +7,10 @@ export default {
   usage: '.gemini <question>',
   category: 'AI',
   async execute(sock, message, args) {
-    const sender = message.key.remoteJid;
+    const jid = getChatJid(message);
     
     if (args.length < 1) {
-      return await sock.sendMessage(sender, { 
+      await sock.sendMessage(jid.chat, { 
         text: `┏━━━━━━━━━━━━━━━━━━┓
 ┃  🌟 *GEMINI PRO AI* 
 ┗━━━━━━━━━━━━━━━━━━┛
@@ -31,7 +31,7 @@ export default {
     const apiUrl = `https://api.giftedtech.co.ke/api/ai/geminiaipro?apikey=gifted&q=${encodeURIComponent(question)}`;
 
     try {
-      await sock.sendMessage(sender, { 
+      await sock.sendMessage(jid.chat, { 
         text: `🌟 *Gemini Pro thinking...*
 
 💭 ${question}
@@ -43,7 +43,7 @@ export default {
       const data = await response.json();
 
       if (data.success && data.result) {
-        await sock.sendMessage(sender, { 
+        await sock.sendMessage(jid.chat, { 
           text: `┏━━━━━━━━━━━━━━━━━━┓
 ┃  🌟 *GEMINI PRO* 
 ┗━━━━━━━━━━━━━━━━━━┛
@@ -54,13 +54,13 @@ ${data.result}
 _Powered by Google AI_ 🌟`
         }, { quoted: message });
       } else {
-        await sock.sendMessage(sender, { 
+        await sock.sendMessage(jid.chat, { 
           text: `❌ *Gemini Error!* Try again.`
         }, { quoted: message });
       }
     } catch (error) {
       console.error('Gemini error:', error);
-      await sock.sendMessage(sender, { 
+      await sock.sendMessage(jid.chat, { 
         text: `❌ *Error!* ${error.message}`
       }, { quoted: message });
     }

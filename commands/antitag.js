@@ -3,7 +3,7 @@ import logging from '../logger.js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-
+import { getChatJid } from '../utils/jidHelper.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ANTITAG_DB = path.join(__dirname, '../data/antitag.json');
 
@@ -37,10 +37,10 @@ export default {
     category: 'Group',
     
     async execute(sock, message, args) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         
         if (!sender.endsWith('@g.us')) {
-            await sock.sendMessage(sender, { text: config.error.notingroups });
+            await sock.sendMessage(jid.chat, { text: config.error.notingroups });
             return;
         }
         
@@ -53,7 +53,7 @@ export default {
             );
             
             if (!senderIsAdmin) {
-                await sock.sendMessage(sender, { text: config.error.notadmin });
+                await sock.sendMessage(jid.chat, { text: config.error.notadmin });
                 return;
             }
             
@@ -65,7 +65,7 @@ export default {
             
             if (args.length === 0) {
                 const status = settings[sender].enabled ? 'ON ✅' : 'OFF ❌';
-                await sock.sendMessage(sender, { 
+                await sock.sendMessage(jid.chat, { 
                     text: `🛡️ *ANTITAG*\n\nStatus: ${status}\nLimit: ${settings[sender].limit} people\n\nCommands:\n• ${config.bot.preffix}antitag on\n• ${config.bot.preffix}antitag off\n• ${config.bot.preffix}antitag setlimit <number>` 
                 });
                 return;
@@ -77,7 +77,7 @@ export default {
                 settings[sender].enabled = true;
                 saveSettings(settings);
                 
-                await sock.sendMessage(sender, { 
+                await sock.sendMessage(jid.chat, { 
                     text: `✅ *Antitag Enabled*\n\n🛡️ Messages tagging >${settings[sender].limit} people will be deleted` 
                 });
                 
@@ -85,13 +85,13 @@ export default {
                 settings[sender].enabled = false;
                 saveSettings(settings);
                 
-                await sock.sendMessage(sender, { 
+                await sock.sendMessage(jid.chat, { 
                     text: `❌ *Antitag Disabled*` 
                 });
                 
             } else if (action === 'setlimit') {
                 if (args.length < 2) {
-                    await sock.sendMessage(sender, { 
+                    await sock.sendMessage(jid.chat, { 
                         text: `❌ Specify number\n\nUsage: ${config.bot.preffix}antitag setlimit 10` 
                     });
                     return;
@@ -100,7 +100,7 @@ export default {
                 const limit = parseInt(args[1]);
                 
                 if (isNaN(limit) || limit < 1 || limit > 100) {
-                    await sock.sendMessage(sender, { 
+                    await sock.sendMessage(jid.chat, { 
                         text: '❌ Number must be 1-100' 
                     });
                     return;
@@ -109,19 +109,19 @@ export default {
                 settings[sender].limit = limit;
                 saveSettings(settings);
                 
-                await sock.sendMessage(sender, { 
+                await sock.sendMessage(jid.chat, { 
                     text: `✅ *Limit Updated*\n\nNew: ${limit} people` 
                 });
                 
             } else {
-                await sock.sendMessage(sender, { 
+                await sock.sendMessage(jid.chat, { 
                     text: `❌ Invalid. Use: on, off, setlimit` 
                 });
             }
             
         } catch (error) {
             logging.error(`[ANTITAG] Error: ${error.message}`);
-            await sock.sendMessage(sender, { text: '❌ Failed.' });
+            await sock.sendMessage(jid.chat, { text: '❌ Failed.' });
         }
     }
 };

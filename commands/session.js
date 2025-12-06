@@ -3,7 +3,7 @@ import logging from '../logger.js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-
+import { getChatJid } from '../utils/jidHelper.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default {
@@ -14,14 +14,14 @@ export default {
     category: 'Owner',
     
     async execute(sock, message, args) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         
         // SECURITY: Only bot owner can use this
         const ownerNumber = config.user.number.replace(/[^0-9]/g, '');
         const senderNumber = sender.replace(/[^0-9]/g, '');
         
         if (senderNumber !== ownerNumber) {
-            return await sock.sendMessage(sender, {
+            await sock.sendMessage(jid.chat, {
                 text: '❌ *Access Denied*\n\nThis command is restricted to the bot owner only.'
             }, { quoted: message });
         }
@@ -42,7 +42,7 @@ export default {
                 `Get your session from:\n` +
                 `https://ernest-tech-house-sessiongenerator.onrender.com/pair`;
             
-            return await sock.sendMessage(sender, {
+            await sock.sendMessage(jid.chat, {
                 text: helpText
             }, { quoted: message });
         }
@@ -57,12 +57,12 @@ export default {
         }
 
         if (!base64String || base64String.trim() === '') {
-            return await sock.sendMessage(sender, {
+            await sock.sendMessage(jid.chat, {
                 text: '❌ *No Session ID Provided*\n\nPlease provide a base64 session string or reply to a message containing it.'
             }, { quoted: message });
         }
 
-        await sock.sendMessage(sender, {
+        await sock.sendMessage(jid.chat, {
             text: '⏳ *Decoding Session...*\n\nPlease wait while I process your session ID.'
         }, { quoted: message });
 
@@ -112,7 +112,7 @@ export default {
                 `   ${config.bot.preffix}restart\n\n` +
                 `✅ Your bot is now ready to use this session!`;
 
-            await sock.sendMessage(sender, {
+            await sock.sendMessage(jid.chat, {
                 text: successText
             }, { quoted: message });
 
@@ -148,7 +148,7 @@ export default {
                     `${config.creator.email}`;
             }
 
-            await sock.sendMessage(sender, {
+            await sock.sendMessage(jid.chat, {
                 text: errorText
             }, { quoted: message });
         }

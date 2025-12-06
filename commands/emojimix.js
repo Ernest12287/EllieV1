@@ -1,6 +1,6 @@
 import config from '../config.js';
 import logging from '../logger.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
     name: 'emojimix',
     aliases: ['mixemoji', 'emojiblend'],
@@ -9,16 +9,16 @@ export default {
     category: 'Fun',
     
     async execute(sock, message, args) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         
         if (args.length < 2) {
-            return await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: `╭━━━『 🎨 EMOJI MIXER 』\n┃\n┃ ❌ Usage: ${config.bot.preffix}emojimix <emoji1> <emoji2>\n┃\n┃ 💡 Examples:\n┃ ${config.bot.preffix}emojimix 😂 😍\n┃ ${config.bot.preffix}emojimix 🔥 💀\n┃ ${config.bot.preffix}emojimix ❤️ 😊\n┃\n╰━━━━━━━━━━━━━━━⬣`
             });
         }
 
         try {
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: '🎨 Mixing emojis...' 
             });
 
@@ -29,7 +29,7 @@ export default {
             
             const caption = `╭━━━『 🎨 EMOJI MIX 』\n┃\n┃ ${emoji1} + ${emoji2} = 💫\n┃\n╰━━━━━━━━━━━━━━━⬣\n\n_${config.bot.name}_`;
             
-            await sock.sendMessage(sender, {
+            await sock.sendMessage(jid.chat, {
                 sticker: { url: apiUrl },
                 mimetype: 'image/webp'
             });
@@ -38,7 +38,7 @@ export default {
 
         } catch (error) {
             logging.error(`[EMOJIMIX] Error: ${error.message}`);
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: `❌ Failed to mix emojis!\n\n💡 Try different emojis.` 
             });
         }

@@ -1,5 +1,5 @@
 import config from '../config.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
   name: 'facebook',
   aliases: ['fb', 'fbdl'],
@@ -7,10 +7,10 @@ export default {
   usage: '.facebook <url>',
   category: 'Download',
   async execute(sock, message, args) {
-    const sender = message.key.remoteJid;
+    const jid = getChatJid(message);
     
     if (args.length < 1) {
-      return await sock.sendMessage(sender, { 
+      await sock.sendMessage(jid.chat, { 
         text: `┏━━━━━━━━━━━━━━━━━━┓
 ┃  📘 *FACEBOOK DOWNLOADER* 
 ┗━━━━━━━━━━━━━━━━━━┛
@@ -31,7 +31,7 @@ export default {
     const apiUrl = `https://api.giftedtech.co.ke/api/download/facebook?apikey=gifted&url=${encodeURIComponent(url)}`;
 
     try {
-      await sock.sendMessage(sender, { 
+      await sock.sendMessage(jid.chat, { 
         text: `┏━━━━━━━━━━━━━━━━━━┓
 ┃  📘 *FACEBOOK MAGIC* 
 ┗━━━━━━━━━━━━━━━━━━┛
@@ -51,7 +51,7 @@ _Quality content incoming!_ 🎬`
         const videoUrl = video.hd_video || video.sd_video;
         
         if (!videoUrl) {
-          return await sock.sendMessage(sender, { 
+          await sock.sendMessage(jid.chat, { 
             text: `❌ *No video found!*
 
 This post might not contain a video or it's private.`
@@ -69,7 +69,7 @@ This post might not contain a video or it's private.`
 ━━━━━━━━━━━━━━━━━━
 _Downloaded via ${config.bot.name}_ 🤖`;
 
-        await sock.sendMessage(sender, {
+        await sock.sendMessage(jid.chat, {
           video: { url: videoUrl },
           caption: caption,
           contextInfo: {
@@ -84,7 +84,7 @@ _Downloaded via ${config.bot.name}_ 🤖`;
           }
         }, { quoted: message });
       } else {
-        await sock.sendMessage(sender, { 
+        await sock.sendMessage(jid.chat, { 
           text: `❌ *Download Failed!*
 
 Make sure:
@@ -95,7 +95,7 @@ Make sure:
       }
     } catch (error) {
       console.error('Facebook download error:', error);
-      await sock.sendMessage(sender, { 
+      await sock.sendMessage(jid.chat, { 
         text: `❌ *Error!* ${error.message}`
       }, { quoted: message });
     }

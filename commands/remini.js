@@ -1,7 +1,7 @@
 import config from '../config.js';
 import logging from '../logger.js';
-import { downloadMediaMessage } from '@whiskeysockets/baileys';
-
+import { downloadMediaMessage } from 'baileys';
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
     name: 'remini',
     aliases: ['enhance', 'hd', 'upscale'],
@@ -10,18 +10,18 @@ export default {
     category: 'Image',
     
     async execute(sock, message, args) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         
         const quotedMessage = message.message?.extendedTextMessage?.contextInfo?.quotedMessage;
         
         if (!quotedMessage?.imageMessage) {
-            return await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: `╭━━━『 ✨ IMAGE ENHANCER 』\n┃\n┃ ❌ Reply to an image with .remini\n┃\n┃ 💡 Enhances image to HD quality\n┃\n╰━━━━━━━━━━━━━━━⬣`
             });
         }
 
         try {
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: '✨ Enhancing image to HD...\n\n⏳ This may take a moment...' 
             });
 
@@ -42,21 +42,21 @@ export default {
             const data = await response.json();
 
             if (data.success && data.result?.image_url) {
-                await sock.sendMessage(sender, {
+                await sock.sendMessage(jid.chat, {
                     image: { url: data.result.image_url },
                     caption: `╭━━━『 ✨ HD ENHANCED 』\n┃\n┃ 📏 Size: ${data.result.size || 'N/A'}\n┃\n╰━━━━━━━━━━━━━━━⬣\n\n_${config.bot.name}_`
                 });
                 
                 logging.success(`[REMINI] Image enhanced`);
             } else {
-                await sock.sendMessage(sender, { 
+                await sock.sendMessage(jid.chat, { 
                     text: '❌ Failed to enhance image!' 
                 });
             }
 
         } catch (error) {
             logging.error(`[REMINI] Error: ${error.message}`);
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: `❌ Error enhancing image!` 
             });
         }

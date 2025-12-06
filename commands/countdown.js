@@ -1,6 +1,6 @@
 import config from '../config.js';
 import logging from '../logger.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
     name: 'countdown',
     aliases: ['timer', 'daysuntil'],
@@ -9,10 +9,10 @@ export default {
     category: 'Utility',
     
     async execute(sock, message, args) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         
         if (args.length < 2) {
-            return await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: `╭━━━『 ⏰ COUNTDOWN 』\n┃\n┃ ❌ Usage: ${config.bot.preffix}countdown <date> <event>\n┃\n┃ 💡 Examples:\n┃ ${config.bot.preffix}countdown 2025-12-25 Christmas\n┃ ${config.bot.preffix}countdown 2025-01-01 New Year\n┃ ${config.bot.preffix}countdown 2025-06-15 Birthday\n┃\n┃ 📅 Format: YYYY-MM-DD\n┃\n╰━━━━━━━━━━━━━━━⬣`
             });
         }
@@ -25,7 +25,7 @@ export default {
             const today = new Date();
             
             if (isNaN(targetDate.getTime())) {
-                return await sock.sendMessage(sender, { 
+                await sock.sendMessage(jid.chat, { 
                     text: '❌ Invalid date format!\n\n💡 Use: YYYY-MM-DD (e.g., 2025-12-25)' 
                 });
             }
@@ -52,12 +52,12 @@ export default {
             
             countdownText += `┃\n╰━━━━━━━━━━━━━━━⬣\n\n_${config.bot.name}_`;
             
-            await sock.sendMessage(sender, { text: countdownText });
+            await sock.sendMessage(jid.chat, { text: countdownText });
             logging.success(`[COUNTDOWN] Calculated for: ${eventName}`);
 
         } catch (error) {
             logging.error(`[COUNTDOWN] Error: ${error.message}`);
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: '❌ Countdown calculation failed.' 
             });
         }

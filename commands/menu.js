@@ -1,5 +1,6 @@
 import config from '../config.js';
 import logging from '../logger.js';
+import { getChatJid } from '../utils/jidHelper.js';
 
 export default {
     name: 'menu',
@@ -9,7 +10,7 @@ export default {
     category: 'Info',
     
     async execute(sock, message, args, commands) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         const prefixes = config.bot.prefixes || [config.bot.preffix || '.'];
         const defaultPrefix = config.bot.defaultPrefix || prefixes[0];
         const allowNoPrefix = config.bot.allowNoPrefix;
@@ -33,9 +34,9 @@ export default {
             );
             
             if (categoryKey) {
-                return await this._sendCategoryView(sock, sender, categoryKey, categories[categoryKey], commands, defaultPrefix);
+                return await this._sendCategoryView(sock, jid.chat, categoryKey, categories[categoryKey], commands, defaultPrefix);
             } else {
-                await sock.sendMessage(sender, { 
+                await sock.sendMessage(jid.chat, { 
                     text: `❌ Category *"${requestedCategory}"* not found!\n\n💡 Use ${defaultPrefix}menu to see all categories.` 
                 });
                 return;
@@ -43,10 +44,10 @@ export default {
         }
 
         // Main menu - STUNNING OVERVIEW
-        await this._sendMainMenu(sock, sender, categories, commands, prefixes, defaultPrefix, allowNoPrefix);
+        await this._sendMainMenu(sock, jid.chat, categories, commands, prefixes, defaultPrefix, allowNoPrefix);
     },
 
-    async _sendMainMenu(sock, sender, categories, commands, prefixes, defaultPrefix, allowNoPrefix) {
+    async _sendMainMenu(sock, chatJid, categories, commands, prefixes, defaultPrefix, allowNoPrefix) {
         const totalCommands = commands.size;
         const totalCategories = Object.keys(categories).length;
         
@@ -172,7 +173,7 @@ Email: ${config.creator.email}
 
 `;
 
-        await sock.sendMessage(sender, { 
+        await sock.sendMessage(chatJid, { 
             text: menuText,
             contextInfo: {
                 externalAdReply: {
@@ -189,7 +190,7 @@ Email: ${config.creator.email}
         logging.success(`[MENU] Sent main menu to user`);
     },
 
-    async _sendCategoryView(sock, sender, categoryName, categoryCommands, allCommands, defaultPrefix) {
+    async _sendCategoryView(sock, chatJid, categoryName, categoryCommands, allCommands, defaultPrefix) {
         const sortedCmds = categoryCommands.sort((a, b) => a.name.localeCompare(b.name));
         const emoji = this._getCategoryEmoji(categoryName);
         
@@ -263,7 +264,7 @@ Email: ${config.creator.email}
 
 _${config.bot.name} • ${categoryName}_`;
 
-        await sock.sendMessage(sender, { 
+        await sock.sendMessage(chatJid, { 
             text,
             contextInfo: {
                 externalAdReply: {

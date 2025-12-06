@@ -1,7 +1,7 @@
 // encrypt.js
 import config from '../config.js';
 import logging from '../logger.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
     name: 'encrypt2', 
     aliases: ['obfuscate2', 'enc2'],
@@ -10,16 +10,16 @@ export default {
     category: 'Developer',
     
     async execute(sock, message, args) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         
         if (args.length < 1) {
-            return await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: `╭━━━『 🔒 CODE OBFUSCATOR 』\n┃\n┃ ❌ Usage: ${config.bot.preffix}encrypt <code>\n┃\n┃ 💡 Example:\n┃ ${config.bot.preffix}encrypt console.log("Hi")\n┃\n╰━━━━━━━━━━━━━━━⬣`
             });
         }
 
         try {
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: '🔒 Obfuscating code...' 
             });
 
@@ -30,24 +30,24 @@ export default {
             const data = await response.json();
 
             if (data.success && data.encrypted_code) {
-                await sock.sendMessage(sender, { 
+                await sock.sendMessage(jid.chat, { 
                     text: `╭━━━『 🔒 OBFUSCATED CODE 』\n┃\n┃ ✅ Code encrypted!\n┃\n╰━━━━━━━━━━━━━━━⬣`
                 });
                 
-                await sock.sendMessage(sender, { 
+                await sock.sendMessage(jid.chat, { 
                     text: data.encrypted_code 
                 });
                 
                 logging.success(`[ENCRYPT] Code obfuscated`);
             } else {
-                await sock.sendMessage(sender, { 
+                await sock.sendMessage(jid.chat, { 
                     text: '❌ Failed to obfuscate code!' 
                 });
             }
 
         } catch (error) {
             logging.error(`[ENCRYPT] Error: ${error.message}`);
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: `❌ Error obfuscating!` 
             });
         }

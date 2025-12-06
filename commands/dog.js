@@ -1,6 +1,6 @@
 import config from '../config.js';
 import logging from '../logger.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
     name: 'dog',
     aliases: ['doggo', 'puppy'],
@@ -9,11 +9,11 @@ export default {
     category: 'Fun',
     
     async execute(sock, message, args) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         const breed = args.join(' ').toLowerCase().replace(/ /g, '-');
         
         try {
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: '🐕 Fetching dog...' 
             });
 
@@ -27,21 +27,21 @@ export default {
             if (data && data.status === 'success' && data.message) {
                 const caption = `╭━━━『 🐕 DOGGO 』\n┃\n┃ 🐶 Random ${breed || 'Dog'}\n┃\n╰━━━━━━━━━━━━━━━⬣\n\n_${config.bot.name}_`;
                 
-                await sock.sendMessage(sender, {
+                await sock.sendMessage(jid.chat, {
                     image: { url: data.message },
                     caption: caption
                 });
                 
                 logging.success(`[DOG] Sent dog image`);
             } else {
-                await sock.sendMessage(sender, { 
+                await sock.sendMessage(jid.chat, { 
                     text: `❌ Breed not found!\n\n💡 Try: ${config.bot.preffix}dog husky\n${config.bot.preffix}dog golden` 
                 });
             }
 
         } catch (error) {
             logging.error(`[DOG] Error: ${error.message}`);
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: '❌ Failed to fetch dog image.' 
             });
         }

@@ -1,5 +1,5 @@
 import config from '../config.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
     name: 'twitter',
     description: 'Download Twitter videos',
@@ -7,10 +7,10 @@ export default {
     category: 'Download',
     
     async execute(sock, message, args) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         
         if (args.length < 1) {
-            return await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: `❌ Usage: ${config.bot.preffix}twitter <url>\n\nExample: ${config.bot.preffix}twitter https://twitter.com/user/status/123456`
             });
         }
@@ -19,7 +19,7 @@ export default {
         const apiUrl = 'https://downloader-yys6.onrender.com/api/download';
         
         try {
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: '⏳ Downloading Twitter video...' 
             });
 
@@ -30,7 +30,7 @@ export default {
                 const content = data.data;
                 
                 if (content.video_url) {
-                    await sock.sendMessage(sender, {
+                    await sock.sendMessage(jid.chat, {
                         video: { url: content.video_url },
                         caption: `🐦 *Twitter Video*\n\n📝 *Title:* ${content.title || 'Tweet video'}\n👤 *Author:* ${content.author}`
                     });
@@ -40,26 +40,26 @@ export default {
                     messageText += `👤 *Author:* ${content.author}\n`;
                     
                     if (content.thumbnail) {
-                        await sock.sendMessage(sender, {
+                        await sock.sendMessage(jid.chat, {
                             image: { url: content.thumbnail },
                             caption: messageText
                         });
                     } else {
-                        await sock.sendMessage(sender, { 
+                        await sock.sendMessage(jid.chat, { 
                             text: messageText 
                         });
                     }
                 }
 
             } else {
-                await sock.sendMessage(sender, { 
+                await sock.sendMessage(jid.chat, { 
                     text: '❌ Failed to download Twitter content. Please check the URL.' 
                 });
             }
 
         } catch (error) {
             console.error('Twitter download error:', error);
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: '❌ Error downloading Twitter content. Please try again later.' 
             });
         }

@@ -5,7 +5,7 @@ import axios from "axios";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from 'url';
-
+import { getChatJid } from '../utils/jidHelper.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -15,11 +15,11 @@ export default {
   usage: ".ytmp3 <url> [--audio|--video]",
   category: "media",
   async execute(sock, msg, args) {
-    const sender = msg.key.remoteJid;
+    const jid = getChatJid(message);
     const query = args.filter(arg => !arg.startsWith('--')).join(" ");
     
     if (!query) {
-      return await sock.sendMessage(sender, { 
+      await sock.sendMessage(jid.chat, { 
         text: `┏━━━━━━━━━━━━━━━━━━┓
 ┃  🎵 *YOUTUBE DOWNLOADER* 
 ┗━━━━━━━━━━━━━━━━━━┛
@@ -54,7 +54,7 @@ export default {
     try {
       // Send exciting loading message
       const formatEmoji = format === "mp3" ? "🎵" : format === "mp4" ? "🎬" : "🎭";
-      await sock.sendMessage(sender, { 
+      await sock.sendMessage(jid.chat, { 
         text: `┏━━━━━━━━━━━━━━━━━━┓
 ┃  ${formatEmoji} *YOUTUBE MAGIC* 
 ┗━━━━━━━━━━━━━━━━━━┛
@@ -86,7 +86,7 @@ _Hang tight, quality takes time!_ ✨`
       }
       
       if (!downloads.length) {
-        return await sock.sendMessage(sender, { 
+        await sock.sendMessage(jid.chat, { 
           text: `❌ *Download Failed!*
 
 Unable to fetch the YouTube content.
@@ -143,7 +143,7 @@ _Downloaded via ${config.bot.name}_ 🤖
         const fileBuffer = fs.readFileSync(filename);
         
         if (isAudio) {
-          await sock.sendMessage(sender, {
+          await sock.sendMessage(jid.chat, {
             audio: fileBuffer,
             mimetype: 'audio/mpeg',
             ptt: false,
@@ -159,7 +159,7 @@ _Downloaded via ${config.bot.name}_ 🤖
             }
           }, { quoted: msg });
         } else {
-          await sock.sendMessage(sender, {
+          await sock.sendMessage(jid.chat, {
             video: fileBuffer,
             caption: caption,
             mimetype: 'video/mp4',
@@ -181,7 +181,7 @@ _Downloaded via ${config.bot.name}_ 🤖
       }
 
       // Success message
-      await sock.sendMessage(sender, {
+      await sock.sendMessage(jid.chat, {
         text: `✅ *Download Complete!*
 
 ${downloads.length > 1 ? '🎭 Both files sent successfully!' : '✨ File sent successfully!'}
@@ -193,7 +193,7 @@ ${downloads.length > 1 ? '🎭 Both files sent successfully!' : '✨ File sent s
 
     } catch (err) {
       console.error('YouTube download error:', err);
-      await sock.sendMessage(sender, { 
+      await sock.sendMessage(jid.chat, { 
         text: `┏━━━━━━━━━━━━━━━━━━┓
 ┃  ⚠️ *ERROR ALERT* 
 ┗━━━━━━━━━━━━━━━━━━┛

@@ -1,7 +1,7 @@
 // ===== trivia.js =====
 import config from '../config.js';
 import logging from '../logger.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
     name: 'trivia',
     aliases: ['quiz'],
@@ -10,7 +10,7 @@ export default {
     category: 'Fun',
     
     async execute(sock, message, args) {
-        const sender = message.key.remoteJid';
+        const sender = getChatJid(message)';
         
         try {
             const apiUrl = 'https://opentdb.com/api.php?amount=1&type=multiple';
@@ -29,14 +29,14 @@ export default {
                 
                 triviaText += `┃\n╰━━━━━━━━━━━━━━━⬣\n\n✅ Answer: ||${q.correct_answer}||`;
                 
-                await sock.sendMessage(sender, { text: triviaText });
+                await sock.sendMessage(jid.chat, { text: triviaText });
                 logging.success('[TRIVIA] Question sent');
             } else {
-                await sock.sendMessage(sender, { text: '❌ Failed to get trivia!' });
+                await sock.sendMessage(jid.chat, { text: '❌ Failed to get trivia!' });
             }
         } catch (error) {
             logging.error(`[TRIVIA] Error: ${error.message}`);
-            await sock.sendMessage(sender, { text: '❌ Error!' });
+            await sock.sendMessage(jid.chat, { text: '❌ Error!' });
         }
     }
 };

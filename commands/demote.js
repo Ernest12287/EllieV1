@@ -1,6 +1,6 @@
 import config from '../config.js';
 import logging from '../logger.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
     name: 'demote',
     description: 'Demote to member',
@@ -8,10 +8,10 @@ export default {
     category: 'Group',
     
     async execute(sock, message) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         
         if (!sender.endsWith('@g.us')) {
-            await sock.sendMessage(sender, { text: config.error.notingroups });
+            await sock.sendMessage(jid.chat, { text: config.error.notingroups });
             return;
         }
         
@@ -24,14 +24,14 @@ export default {
             );
             
             if (!senderIsAdmin) {
-                await sock.sendMessage(sender, { text: config.error.notadmin });
+                await sock.sendMessage(jid.chat, { text: config.error.notadmin });
                 return;
             }
             
             const mentioned = message.message?.extendedTextMessage?.contextInfo?.mentionedJid;
             
             if (!mentioned || mentioned.length === 0) {
-                await sock.sendMessage(sender, { 
+                await sock.sendMessage(jid.chat, { 
                     text: `❌ Mention user\n\nUsage: ${config.bot.preffix}demote @user` 
                 });
                 return;
@@ -44,13 +44,13 @@ export default {
                 text += `👤 @${user.split('@')[0]}\n`;
             });
             
-            await sock.sendMessage(sender, { text, mentions: mentioned });
+            await sock.sendMessage(jid.chat, { text, mentions: mentioned });
             
             logging.success(`[DEMOTE] Demoted ${mentioned.length} user(s)`);
             
         } catch (error) {
             logging.error(`[DEMOTE] Error: ${error.message}`);
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: '❌ Failed. Bot must be admin.' 
             });
         }

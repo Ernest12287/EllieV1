@@ -1,7 +1,7 @@
 import config from '../config.js';
 import logging from '../logger.js';
 import os from 'os';
-
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
     name: 'about',
     aliases: ['info', 'botinfo', 'stats'],
@@ -10,7 +10,7 @@ export default {
     category: 'Info',
     
     async execute(sock, message, args, commands) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         const prefixes = config.bot.prefixes || [config.bot.preffix || '.'];
         const defaultPrefix = config.bot.defaultPrefix || prefixes[0];
         const allowNoPrefix = config.bot.allowNoPrefix;
@@ -153,7 +153,7 @@ Email: ${config.creator.email}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 💚 _Made with love by ${config.creator.name}_
-🚀 _Powered by @whiskeysockets/baileys_
+🚀 _Powered by baileys_
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -161,7 +161,7 @@ Email: ${config.creator.email}
 Type ${defaultPrefix}menu to get started!
 `;
 
-        await sock.sendMessage(sender, { 
+        await sock.sendMessage(jid.chat, { 
             text: aboutText,
             contextInfo: {
                 externalAdReply: {

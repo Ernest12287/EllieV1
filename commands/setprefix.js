@@ -3,7 +3,7 @@ import logging from '../logger.js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-
+import { getChatJid } from '../utils/jidHelper.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ENV_PATH = path.join(__dirname, '../.env');
 
@@ -19,17 +19,17 @@ export default {
     adminOnly: true,
     
     async execute(sock, message, args) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         const ownerNumber = config.creator.number;
         
         const senderCleanNumber = getNumberFromJid(sender);
         if (ownerNumber !== senderCleanNumber) {
-            await sock.sendMessage(sender, { text: config.error.notadmin });
+            await sock.sendMessage(jid.chat, { text: config.error.notadmin });
             return;
         }
         
         if (args.length === 0) {
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: `❌ Provide new prefix.\n\nCurrent: *${config.bot.preffix}*\n\nUsage: ${config.bot.preffix}setprefix <new>` 
             });
             return;
@@ -38,12 +38,12 @@ export default {
         const newPrefix = args[0];
         
         if (newPrefix.includes(' ')) {
-            await sock.sendMessage(sender, { text: '❌ Prefix cannot contain spaces!' });
+            await sock.sendMessage(jid.chat, { text: '❌ Prefix cannot contain spaces!' });
             return;
         }
         
         if (newPrefix.length > 3) {
-            await sock.sendMessage(sender, { text: '❌ Max 3 characters!' });
+            await sock.sendMessage(jid.chat, { text: '❌ Max 3 characters!' });
             return;
         }
         
@@ -64,13 +64,13 @@ export default {
                 logging.success(`Prefix changed: ${oldPrefix} → ${newPrefix}`);
             }
             
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: `✅ *Prefix Updated!*\n\nOld: *${oldPrefix}*\nNew: *${newPrefix}*\n\n⚠️ Restart bot to persist.` 
             });
             
         } catch (error) {
             logging.error(`Error: ${error.message}`);
-            await sock.sendMessage(sender, { text: '❌ Failed to update prefix.' });
+            await sock.sendMessage(jid.chat, { text: '❌ Failed to update prefix.' });
         }
     }
 };

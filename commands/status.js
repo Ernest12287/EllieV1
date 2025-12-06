@@ -1,6 +1,6 @@
 import config from '../config.js';
 import os from 'os';
-
+import { getChatJid } from '../utils/jidHelper.js';
 const getNumberFromJid = (jid) => {
     return jid.split('@')[0].split(':')[0];
 };
@@ -22,12 +22,12 @@ export default {
     adminOnly: true,
     
     async execute(sock, message) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         const ownerNumber = config.creator.number;
         
         const senderCleanNumber = getNumberFromJid(sender);
         if (ownerNumber !== senderCleanNumber) {
-            await sock.sendMessage(sender, { text: config.error.notadmin });
+            await sock.sendMessage(jid.chat, { text: config.error.notadmin });
             return;
         }
         
@@ -74,6 +74,6 @@ ${days}d ${hours}h ${minutes}m ${seconds}s
 ✅ All systems operational
         `.trim();
         
-        await sock.sendMessage(sender, { text: statusText });
+        await sock.sendMessage(jid.chat, { text: statusText });
     }
 };

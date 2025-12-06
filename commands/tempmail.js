@@ -1,5 +1,5 @@
 import config from '../config.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
   name: 'tempmail',
   aliases: ['genmail', 'fakemail'],
@@ -7,7 +7,7 @@ export default {
   usage: '.tempmail [generate|inbox|read]',
   category: 'Tools',
   async execute(sock, message, args) {
-    const sender = message.key.remoteJid;
+    const jid = getChatJid(message);
     const action = args[0]?.toLowerCase() || 'generate';
 
     if (action === 'generate' || !args.length) {
@@ -17,7 +17,7 @@ export default {
         const data = await response.json();
 
         if (data.success) {
-          await sock.sendMessage(sender, { 
+          await sock.sendMessage(jid.chat, { 
             text: `┏━━━━━━━━━━━━━━━━━━┓
 ┃  📧 *TEMP MAIL GENERATED* 
 ┗━━━━━━━━━━━━━━━━━━┛
@@ -43,7 +43,7 @@ _Your privacy matters!_ 🔒`
           }, { quoted: message });
         }
       } catch (error) {
-        await sock.sendMessage(sender, { 
+        await sock.sendMessage(jid.chat, { 
           text: `❌ *Error!* ${error.message}`
         }, { quoted: message });
       }
@@ -51,7 +51,7 @@ _Your privacy matters!_ 🔒`
       // Check inbox
       const email = args[1];
       if (!email) {
-        return await sock.sendMessage(sender, { 
+        await sock.sendMessage(jid.chat, { 
           text: `❌ *Missing email!*\n\n📝 Usage: ${config.bot.preffix}tempmail inbox <email>`
         }, { quoted: message });
       }
@@ -82,14 +82,14 @@ _Your privacy matters!_ 🔒`
           inboxText += `📖 *Read message:*\n`;
           inboxText += `${config.bot.preffix}tempmail read ${email} <id>`;
 
-          await sock.sendMessage(sender, { text: inboxText }, { quoted: message });
+          await sock.sendMessage(jid.chat, { text: inboxText }, { quoted: message });
         } else {
-          await sock.sendMessage(sender, { 
+          await sock.sendMessage(jid.chat, { 
             text: `📭 *Inbox Empty!*\n\nNo messages received yet.\n\n💡 *Tip:* Send a test email to see it appear here!`
           }, { quoted: message });
         }
       } catch (error) {
-        await sock.sendMessage(sender, { 
+        await sock.sendMessage(jid.chat, { 
           text: `❌ *Error!* ${error.message}`
         }, { quoted: message });
       }
@@ -99,7 +99,7 @@ _Your privacy matters!_ 🔒`
       const messageId = args[2];
       
       if (!email || !messageId) {
-        return await sock.sendMessage(sender, { 
+        await sock.sendMessage(jid.chat, { 
           text: `❌ *Missing parameters!*\n\n📝 Usage: ${config.bot.preffix}tempmail read <email> <messageid>`
         }, { quoted: message });
       }
@@ -110,7 +110,7 @@ _Your privacy matters!_ 🔒`
 
         if (data.success && data.result) {
           const msg = data.result;
-          await sock.sendMessage(sender, { 
+          await sock.sendMessage(jid.chat, { 
             text: `┏━━━━━━━━━━━━━━━━━━┓
 ┃  📧 *EMAIL MESSAGE* 
 ┗━━━━━━━━━━━━━━━━━━┛
@@ -127,18 +127,18 @@ ${msg.body || msg.text || msg.content || 'No content'}
 ━━━━━━━━━━━━━━━━━━`
           }, { quoted: message });
         } else {
-          await sock.sendMessage(sender, { 
+          await sock.sendMessage(jid.chat, { 
             text: `❌ *Message not found!*\n\nCheck the message ID and try again.`
           }, { quoted: message });
         }
       } catch (error) {
-        await sock.sendMessage(sender, { 
+        await sock.sendMessage(jid.chat, { 
           text: `❌ *Error!* ${error.message}`
         }, { quoted: message });
       }
     } else {
       // Show help
-      await sock.sendMessage(sender, { 
+      await sock.sendMessage(jid.chat, { 
         text: `┏━━━━━━━━━━━━━━━━━━┓
 ┃  📧 *TEMP MAIL HELP* 
 ┗━━━━━━━━━━━━━━━━━━┛

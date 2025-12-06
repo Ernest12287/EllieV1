@@ -1,6 +1,6 @@
 import config from '../config.js';
 import logging from '../logger.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
     name: 'goodbye',
     aliases: ['welcome', 'greet'],
@@ -9,16 +9,16 @@ export default {
     category: 'Image',
     
     async execute(sock, message, args) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         
         if (args.length < 2) {
-            return await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: `╭━━━『 👋 WELCOME/GOODBYE 』\n┃\n┃ ❌ Usage: ${config.bot.preffix}goodbye <name> <type>\n┃\n┃ 💡 Types:\n┃ • type1 - Welcome style 1\n┃ • type2 - Welcome style 2\n┃ • type3 - Goodbye style\n┃\n┃ 📝 Example:\n┃ ${config.bot.preffix}goodbye John type1\n┃\n╰━━━━━━━━━━━━━━━⬣`
             });
         }
 
         try {
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: '👋 Creating image...' 
             });
 
@@ -32,7 +32,7 @@ export default {
             
             const caption = `╭━━━『 👋 GREETING 』\n┃\n┃ 👤 Name: ${name}\n┃ 🎨 Style: ${type}\n┃\n╰━━━━━━━━━━━━━━━⬣\n\n_${config.bot.name}_`;
             
-            await sock.sendMessage(sender, {
+            await sock.sendMessage(jid.chat, {
                 image: { url: apiUrl },
                 caption: caption
             });
@@ -41,7 +41,7 @@ export default {
 
         } catch (error) {
             logging.error(`[GOODBYE] Error: ${error.message}`);
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: `❌ Failed to create image!` 
             });
         }

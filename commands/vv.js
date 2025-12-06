@@ -1,10 +1,10 @@
 import config from '../config.js';
 import logging from '../logger.js';
-import { downloadContentFromMessage } from '@whiskeysockets/baileys';
+import { downloadContentFromMessage } from 'baileys';
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
-
+import { getChatJid } from '../utils/jidHelper.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default {
@@ -14,13 +14,13 @@ export default {
     category: 'Tools',
     
     async execute(sock, message) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         
         try {
             const quoted = message.message?.extendedTextMessage?.contextInfo?.quotedMessage;
             
             if (!quoted) {
-                await sock.sendMessage(sender, { 
+                await sock.sendMessage(jid.chat, { 
                     text: `❌ Reply to a view-once message.\n\nUsage: ${config.bot.preffix}vv (reply)`
                 }, { quoted: message });
                 return;
@@ -56,13 +56,13 @@ export default {
             }
             
             if (!mediaToDownload || !mediaType) {
-                await sock.sendMessage(sender, { 
+                await sock.sendMessage(jid.chat, { 
                     text: '❌ No view-once media found.'
                 }, { quoted: message });
                 return;
             }
             
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: `⏳ Downloading view-once ${mediaType}...` 
             });
             
@@ -76,7 +76,7 @@ export default {
             }
             
             if (buffer.length === 0) {
-                await sock.sendMessage(sender, { 
+                await sock.sendMessage(jid.chat, { 
                     text: '❌ Failed to download. File might be expired.'
                 }, { quoted: message });
                 return;
@@ -96,12 +96,12 @@ export default {
                 : `🎥 *View-Once Video*\n\n_Downloaded by ${config.bot.name}_`;
             
             if (mediaType === 'image') {
-                await sock.sendMessage(sender, { 
+                await sock.sendMessage(jid.chat, { 
                     image: { url: filePath }, 
                     caption: caption 
                 }, { quoted: message });
             } else {
-                await sock.sendMessage(sender, { 
+                await sock.sendMessage(jid.chat, { 
                     video: { url: filePath }, 
                     caption: caption 
                 }, { quoted: message });
@@ -112,7 +112,7 @@ export default {
             
         } catch (error) {
             logging.error(`[VV] Error: ${error.message}`);
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: '❌ Failed to download view-once media.'
             }, { quoted: message });
         }

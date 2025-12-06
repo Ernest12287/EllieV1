@@ -1,5 +1,5 @@
 import config from '../config.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
     name: 'convert',
     description: 'Convert between different units',
@@ -7,10 +7,10 @@ export default {
     category: 'Utility',
     
     async execute(sock, message, args) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         
         if (args.length < 3) {
-            return await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: `❌ Usage: ${config.bot.preffix}convert <amount> <from> to <to>\n\nSupported: length, weight, temperature\n\nExamples:\n• ${config.bot.preffix}convert 10 km to miles\n• ${config.bot.preffix}convert 32 fahrenheit to celsius\n• ${config.bot.preffix}convert 5 kg to pounds`
             });
         }
@@ -23,18 +23,18 @@ export default {
             const result = this._convertUnit(amount, fromUnit, toUnit);
             
             if (result) {
-                await sock.sendMessage(sender, { 
+                await sock.sendMessage(jid.chat, { 
                     text: `📐 *Unit Conversion*\n\n${amount} ${fromUnit} = ${result.value.toFixed(4)} ${toUnit}\n\nFormula: ${result.formula}` 
                 });
             } else {
-                await sock.sendMessage(sender, { 
+                await sock.sendMessage(jid.chat, { 
                     text: '❌ Unsupported conversion. Use: length, weight, or temperature units.' 
                 });
             }
 
         } catch (error) {
             console.error('Convert error:', error);
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: '❌ Error converting units. Please check the format.' 
             });
         }

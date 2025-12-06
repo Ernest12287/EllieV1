@@ -1,7 +1,7 @@
 import config from '../config.js';
 import logging from '../logger.js';
 import os from 'os';
-
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
     name: 'stats',
     aliases: ['statistics', 'botstats'],
@@ -10,7 +10,7 @@ export default {
     category: 'Info',
     
     async execute(sock, message, args, commands) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         
         try {
             // Get command categories
@@ -79,7 +79,7 @@ export default {
             
             statsText += `_Bot is running smoothly! 🚀_`;
             
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: statsText,
                 contextInfo: {
                     externalAdReply: {
@@ -96,7 +96,7 @@ export default {
             
         } catch (error) {
             logging.error(`[STATS] Error: ${error.message}`);
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: '❌ Failed to get statistics!' 
             });
         }

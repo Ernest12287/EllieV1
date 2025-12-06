@@ -1,5 +1,5 @@
 import config from '../config.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
     name: 'riddle',
     description: 'Get a random riddle',
@@ -7,7 +7,7 @@ export default {
     category: 'Fun',
     
     async execute(sock, message, args) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         
         const riddles = [
             { q: 'What has keys but no locks?', a: 'A keyboard' },
@@ -22,7 +22,7 @@ export default {
         
         const riddle = riddles[Math.floor(Math.random() * riddles.length)];
         
-        await sock.sendMessage(sender, { 
+        await sock.sendMessage(jid.chat, { 
             text: `╭━━━『 🤯 RIDDLE 』\n┃\n┃ ${riddle.q}\n┃\n╰━━━━━━━━━━━━━━━⬣\n\n💡 Answer: ||${riddle.a}||`
         });
     }

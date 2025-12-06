@@ -1,5 +1,5 @@
 import config from '../config.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
   name: 'mistral',
   aliases: ['mistralai'],
@@ -7,10 +7,10 @@ export default {
   usage: '.mistral <question>',
   category: 'AI',
   async execute(sock, message, args) {
-    const sender = message.key.remoteJid;
+    const jid = getChatJid(message);
     
     if (args.length < 1) {
-      return await sock.sendMessage(sender, { 
+      await sock.sendMessage(jid.chat, { 
         text: `┏━━━━━━━━━━━━━━━━━━┓
 ┃  🎯 *MISTRAL AI* 
 ┗━━━━━━━━━━━━━━━━━━┛
@@ -31,7 +31,7 @@ export default {
     const apiUrl = `https://api.giftedtech.co.ke/api/ai/mistral?apikey=gifted&q=${encodeURIComponent(question)}`;
 
     try {
-      await sock.sendMessage(sender, { 
+      await sock.sendMessage(jid.chat, { 
         text: `🎯 *Mistral AI processing...*
 
 💭 ${question}
@@ -43,7 +43,7 @@ export default {
       const data = await response.json();
 
       if (data.success && data.result) {
-        await sock.sendMessage(sender, { 
+        await sock.sendMessage(jid.chat, { 
           text: `┏━━━━━━━━━━━━━━━━━━┓
 ┃  🎯 *MISTRAL AI* 
 ┗━━━━━━━━━━━━━━━━━━┛
@@ -54,13 +54,13 @@ ${data.result}
 _Mistral AI Team_ 🎯`
         }, { quoted: message });
       } else {
-        await sock.sendMessage(sender, { 
+        await sock.sendMessage(jid.chat, { 
           text: `❌ *Mistral Error!*`
         }, { quoted: message });
       }
     } catch (error) {
       console.error('Mistral error:', error);
-      await sock.sendMessage(sender, { 
+      await sock.sendMessage(jid.chat, { 
         text: `❌ *Error!* ${error.message}`
       }, { quoted: message });
     }

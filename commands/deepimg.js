@@ -1,5 +1,5 @@
 import config from '../config.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
   name: 'deepimg',
   aliases: ['generateimg', 'aiimg'],
@@ -7,10 +7,10 @@ export default {
   usage: '.deepimg <prompt>',
   category: 'AI',
   async execute(sock, message, args) {
-    const sender = message.key.remoteJid;
+    const jid = getChatJid(message);
     
     if (args.length < 1) {
-      return await sock.sendMessage(sender, { 
+      await sock.sendMessage(jid.chat, { 
         text: `┏━━━━━━━━━━━━━━━━━━┓
 ┃  🎨 *DEEP IMAGE AI* 
 ┗━━━━━━━━━━━━━━━━━━┛
@@ -32,7 +32,7 @@ export default {
     const apiUrl = `https://api.giftedtech.co.ke/api/ai/deepimg?apikey=gifted&prompt=${encodeURIComponent(prompt)}`;
 
     try {
-      await sock.sendMessage(sender, { 
+      await sock.sendMessage(jid.chat, { 
         text: `┏━━━━━━━━━━━━━━━━━━┓
 ┃  🎨 *GENERATING IMAGE* 
 ┗━━━━━━━━━━━━━━━━━━┛
@@ -60,12 +60,12 @@ ${prompt}
 ━━━━━━━━━━━━━━━━━━
 _Created by Deep Image AI_ 🎨`;
 
-        await sock.sendMessage(sender, {
+        await sock.sendMessage(jid.chat, {
           image: { url: data.result },
           caption: caption
         }, { quoted: message });
       } else {
-        await sock.sendMessage(sender, { 
+        await sock.sendMessage(jid.chat, { 
           text: `❌ *Generation Failed!*
 
 Unable to generate image. Try:
@@ -76,7 +76,7 @@ Unable to generate image. Try:
       }
     } catch (error) {
       console.error('Deep Image error:', error);
-      await sock.sendMessage(sender, { 
+      await sock.sendMessage(jid.chat, { 
         text: `❌ *Error!* ${error.message}`
       }, { quoted: message });
     }

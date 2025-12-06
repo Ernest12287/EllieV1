@@ -1,6 +1,6 @@
 import config from '../config.js';
 import logging from '../logger.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
     name: 'youtube',
     aliases: ['yts'],
@@ -9,10 +9,10 @@ export default {
     category: 'Media',
     
     async execute(sock, message, args) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         
         if (args.length === 0) {
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: `╭━━━『 🎥 YOUTUBE SEARCH 』\n┃\n┃ ❌ Please provide a search query!\n┃\n┃ 📝 Usage: ${config.bot.preffix}youtube <query>\n┃\n┃ 💡 Example:\n┃ ${config.bot.preffix}youtube despacito\n┃\n╰━━━━━━━━━━━━━━━⬣` 
             });
             return;
@@ -21,7 +21,7 @@ export default {
         const query = args.join(' ');
         
         try {
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: `🔍 Searching YouTube for: *${query}*\n\n⏳ Please wait...` 
             });
             
@@ -34,7 +34,7 @@ export default {
             const data = await response.json();
             
             if (!data.items || data.items.length === 0) {
-                await sock.sendMessage(sender, { 
+                await sock.sendMessage(jid.chat, { 
                     text: `❌ No results found for: *${query}*` 
                 });
                 return;
@@ -61,19 +61,19 @@ export default {
             
             // Send thumbnail of first result
             if (data.items[0].snippet.thumbnails?.high?.url) {
-                await sock.sendMessage(sender, {
+                await sock.sendMessage(jid.chat, {
                     image: { url: data.items[0].snippet.thumbnails.high.url },
                     caption: resultText
                 });
             } else {
-                await sock.sendMessage(sender, { text: resultText });
+                await sock.sendMessage(jid.chat, { text: resultText });
             }
             
             logging.success(`[YOUTUBE] Search results sent for: ${query}`);
             
         } catch (error) {
             logging.error(`[YOUTUBE] Error: ${error.message}`);
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: `❌ Search failed.\n\n*Error:* ${error.message}` 
             });
         }

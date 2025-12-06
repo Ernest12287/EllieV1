@@ -1,6 +1,6 @@
 import config from '../config.js';
 import logging from '../logger.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
     name: 'announce',
     description: 'Send announcement',
@@ -8,10 +8,10 @@ export default {
     category: 'Group',
     
     async execute(sock, message, args) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         
         if (!sender.endsWith('@g.us')) {
-            await sock.sendMessage(sender, { text: config.error.notingroups });
+            await sock.sendMessage(jid.chat, { text: config.error.notingroups });
             return;
         }
         
@@ -24,12 +24,12 @@ export default {
             );
             
             if (!senderIsAdmin) {
-                await sock.sendMessage(sender, { text: config.error.notadmin });
+                await sock.sendMessage(jid.chat, { text: config.error.notadmin });
                 return;
             }
             
             if (args.length === 0) {
-                await sock.sendMessage(sender, { 
+                await sock.sendMessage(jid.chat, { 
                     text: `❌ Provide message\n\nUsage: ${config.bot.preffix}announce <message>` 
                 });
                 return;
@@ -53,13 +53,13 @@ ${announcement}
 🤖 ${config.bot.name}
             `.trim();
             
-            await sock.sendMessage(sender, { text });
+            await sock.sendMessage(jid.chat, { text });
             
             logging.success(`[ANNOUNCE] Sent in ${groupMetadata.subject}`);
             
         } catch (error) {
             logging.error(`[ANNOUNCE] Error: ${error.message}`);
-            await sock.sendMessage(sender, { text: '❌ Failed.' });
+            await sock.sendMessage(jid.chat, { text: '❌ Failed.' });
         }
     }
 };

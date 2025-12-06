@@ -48,7 +48,7 @@ cd EllieV1
 npm install
 
 # This will install:
-# - @whiskeysockets/baileys (WhatsApp Web API)
+# - baileys (WhatsApp Web API)
 # - All other dependencies from package.json
 ```
 

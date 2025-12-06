@@ -1,5 +1,5 @@
 import config from '../config.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
   name: 'pinterest',
   aliases: ['pin', 'pindl'],
@@ -7,10 +7,10 @@ export default {
   usage: '.pinterest <url>',
   category: 'Download',
   async execute(sock, message, args) {
-    const sender = message.key.remoteJid;
+    const jid = getChatJid(message);
     
     if (args.length < 1) {
-      return await sock.sendMessage(sender, { 
+      await sock.sendMessage(jid.chat, { 
         text: `┏━━━━━━━━━━━━━━━━━━┓
 ┃  📌 *PINTEREST DOWNLOADER* 
 ┗━━━━━━━━━━━━━━━━━━┛
@@ -31,7 +31,7 @@ export default {
     const apiUrl = `https://api.giftedtech.co.ke/api/download/pinterestdl?apikey=gifted&url=${encodeURIComponent(url)}`;
 
     try {
-      await sock.sendMessage(sender, { 
+      await sock.sendMessage(jid.chat, { 
         text: `┏━━━━━━━━━━━━━━━━━━┓
 ┃  📌 *PINTEREST MAGIC* 
 ┗━━━━━━━━━━━━━━━━━━┛
@@ -65,7 +65,7 @@ _Hang tight!_ 🎨`
 ━━━━━━━━━━━━━━━━━━
 _Downloaded via ${config.bot.name}_ 🤖`;
 
-          await sock.sendMessage(sender, {
+          await sock.sendMessage(jid.chat, {
             video: { url: bestVideo.download_url },
             caption: caption
           }, { quoted: message });
@@ -73,20 +73,20 @@ _Downloaded via ${config.bot.name}_ 🤖`;
           // If no video, send image
           const image = result.media.find(m => m.format === 'JPG');
           if (image) {
-            await sock.sendMessage(sender, {
+            await sock.sendMessage(jid.chat, {
               image: { url: image.download_url },
               caption: `📌 *${result.title}*\n\n_Via ${config.bot.name}_ 🤖`
             }, { quoted: message });
           }
         }
       } else {
-        await sock.sendMessage(sender, { 
+        await sock.sendMessage(jid.chat, { 
           text: `❌ *Download Failed!*\n\nCheck if the URL is valid.`
         }, { quoted: message });
       }
     } catch (error) {
       console.error('Pinterest download error:', error);
-      await sock.sendMessage(sender, { 
+      await sock.sendMessage(jid.chat, { 
         text: `❌ *Error!* ${error.message}`
       }, { quoted: message });
     }

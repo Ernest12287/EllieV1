@@ -1,5 +1,5 @@
 import config from '../config.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
     name: 'download',
     description: 'Download from any supported platform',
@@ -7,10 +7,10 @@ export default {
     category: 'Download',
     
     async execute(sock, message, args) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         
         if (args.length < 1) {
-            return await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: `❌ Usage: ${config.bot.preffix}download <url>\n\nSupported platforms:\n• TikTok\n• Douyin\n• Twitter\n• WeiBo\n• YouTube\n• Instagram\n• Facebook\n• And 1000+ more sites!`
             });
         }
@@ -19,7 +19,7 @@ export default {
         const apiUrl = 'https://downloader-yys6.onrender.com/api/download';
         
         try {
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: '⏳ Downloading content...' 
             });
 
@@ -36,7 +36,7 @@ export default {
                 if (content.platform.includes('youtube')) platformEmoji = '📺';
                 
                 if (content.video_url) {
-                    await sock.sendMessage(sender, {
+                    await sock.sendMessage(jid.chat, {
                         video: { url: content.video_url },
                         caption: `${platformEmoji} *${content.platform.toUpperCase()} Video*\n\n📝 *Title:* ${content.title || 'No title'}\n👤 *Author:* ${content.author}\n⏱️ *Duration:* ${content.duration}s`
                     });
@@ -49,26 +49,26 @@ export default {
                     messageText += `ℹ️ *Note:* Direct download not available for this content.`;
 
                     if (content.thumbnail) {
-                        await sock.sendMessage(sender, {
+                        await sock.sendMessage(jid.chat, {
                             image: { url: content.thumbnail },
                             caption: messageText
                         });
                     } else {
-                        await sock.sendMessage(sender, { 
+                        await sock.sendMessage(jid.chat, { 
                             text: messageText 
                         });
                     }
                 }
 
             } else {
-                await sock.sendMessage(sender, { 
+                await sock.sendMessage(jid.chat, { 
                     text: '❌ Download failed. Please check the URL and try again.' 
                 });
             }
 
         } catch (error) {
             console.error('Download error:', error);
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: '❌ Error downloading content. Please try again later.' 
             });
         }

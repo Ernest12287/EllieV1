@@ -1,6 +1,6 @@
 import config from '../config.js';
 import logging from '../logger.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
     name: 'groupinfo',
     description: 'Get group information',
@@ -9,10 +9,10 @@ export default {
     aliases: ['ginfo'],
     
     async execute(sock, message) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         
         if (!sender.endsWith('@g.us')) {
-            await sock.sendMessage(sender, { text: config.error.notingroups });
+            await sock.sendMessage(jid.chat, { text: config.error.notingroups });
             return;
         }
         
@@ -56,11 +56,11 @@ ${sender}
 🤖 Info by ${config.bot.name}
             `.trim();
             
-            await sock.sendMessage(sender, { text });
+            await sock.sendMessage(jid.chat, { text });
             
         } catch (error) {
             logging.error(`[GROUPINFO] Error: ${error.message}`);
-            await sock.sendMessage(sender, { text: '❌ Failed.' });
+            await sock.sendMessage(jid.chat, { text: '❌ Failed.' });
         }
     }
 };

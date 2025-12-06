@@ -1,7 +1,7 @@
 import config from '../config.js';
 import logging from '../logger.js';
 import util from 'util';
-
+import { getChatJid } from '../utils/jidHelper.js';
 const getNumberFromJid = (jid) => {
     return jid.split('@')[0].split(':')[0];
 };
@@ -14,17 +14,17 @@ export default {
     adminOnly: true,
     
     async execute(sock, message, args) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         const ownerNumber = config.creator.number;
         
         const senderCleanNumber = getNumberFromJid(sender);
         if (ownerNumber !== senderCleanNumber) {
-            await sock.sendMessage(sender, { text: config.error.notadmin });
+            await sock.sendMessage(jid.chat, { text: config.error.notadmin });
             return;
         }
         
         if (args.length === 0) {
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: `❌ Provide code.\n\nUsage: ${config.bot.preffix}eval <code>` 
             });
             return;
@@ -40,13 +40,13 @@ export default {
             
             const output = util.inspect(result, { depth: 2, colors: false });
             
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: `⚡ *EVAL RESULT*\n\n📝 Code:\n\`\`\`${code}\`\`\`\n\n✅ Output:\n\`\`\`${output}\`\`\`` 
             });
             
         } catch (error) {
             logging.error(`[EVAL] Error: ${error.message}`);
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: `❌ *EVAL ERROR*\n\n\`\`\`${error.message}\`\`\`` 
             });
         }

@@ -3,7 +3,7 @@ import logging from '../logger.js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-
+import { getChatJid } from '../utils/jidHelper.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const MODE_FILE = path.join(__dirname, '../data/botmode.json');
 
@@ -46,14 +46,14 @@ export default {
     category: 'Owner',
     
     async execute(sock, message, args) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         
         // SECURITY: Only bot owner can use this
         const ownerNumber = config.user.number.replace(/[^0-9]/g, '');
         const senderNumber = sender.replace(/[^0-9]/g, '');
         
         if (senderNumber !== ownerNumber) {
-            return await sock.sendMessage(sender, {
+            await sock.sendMessage(jid.chat, {
                 text: '❌ *Access Denied*\n\nThis command is restricted to the bot owner only.'
             }, { quoted: message });
         }
@@ -71,7 +71,7 @@ export default {
                 `• ${config.bot.preffix}public on - Enable public mode\n` +
                 `• ${config.bot.preffix}public off - Enable private mode`;
             
-            return await sock.sendMessage(sender, {
+            await sock.sendMessage(jid.chat, {
                 text: statusText
             }, { quoted: message });
         }
@@ -80,7 +80,7 @@ export default {
 
         if (action === 'on') {
             if (currentMode) {
-                return await sock.sendMessage(sender, {
+                await sock.sendMessage(jid.chat, {
                     text: '⚠️ *Already Active*\n\nBot is already in public mode.'
                 }, { quoted: message });
             }
@@ -88,18 +88,18 @@ export default {
             if (saveBotMode(true)) {
                 logging.success('[PUBLIC] Switched to PUBLIC mode');
                 
-                await sock.sendMessage(sender, {
+                await sock.sendMessage(jid.chat, {
                     text: '🌍 *Public Mode Enabled*\n\n✅ Bot will now respond to all messages.\n\n_Mode changed successfully!_'
                 }, { quoted: message });
             } else {
-                await sock.sendMessage(sender, {
+                await sock.sendMessage(jid.chat, {
                     text: '❌ *Error*\n\nFailed to save mode settings.'
                 }, { quoted: message });
             }
 
         } else if (action === 'off') {
             if (!currentMode) {
-                return await sock.sendMessage(sender, {
+                await sock.sendMessage(jid.chat, {
                     text: '⚠️ *Already Active*\n\nBot is already in private mode.'
                 }, { quoted: message });
             }
@@ -107,17 +107,17 @@ export default {
             if (saveBotMode(false)) {
                 logging.success('[PUBLIC] Switched to PRIVATE mode');
                 
-                await sock.sendMessage(sender, {
+                await sock.sendMessage(jid.chat, {
                     text: '🔒 *Private Mode Enabled*\n\n✅ Bot will now only respond to your messages.\n\n_Mode changed successfully!_'
                 }, { quoted: message });
             } else {
-                await sock.sendMessage(sender, {
+                await sock.sendMessage(jid.chat, {
                     text: '❌ *Error*\n\nFailed to save mode settings.'
                 }, { quoted: message });
             }
 
         } else {
-            await sock.sendMessage(sender, {
+            await sock.sendMessage(jid.chat, {
                 text: `❌ *Invalid Option*\n\n*Usage:*\n• ${config.bot.preffix}public on\n• ${config.bot.preffix}public off\n• ${config.bot.preffix}public (check status)`
             }, { quoted: message });
         }

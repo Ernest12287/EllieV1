@@ -3,7 +3,7 @@ import logging from '../logger.js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-
+import { getChatJid } from '../utils/jidHelper.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const AFK_DB = path.join(__dirname, '../data/afk.json');
 
@@ -40,7 +40,7 @@ export default {
     category: 'Personal',
     
     async execute(sock, message, args) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         const userJid = message.key.participant || message.key.remoteJid;
         const userNumber = userJid.split('@')[0];
         
@@ -54,7 +54,7 @@ export default {
             
             logging.success(`[AFK] ${userNumber} is no longer AFK`);
             
-            await sock.sendMessage(sender, {
+            await sock.sendMessage(jid.chat, {
                 text: `✅ *AFK Mode Disabled*\n\n` +
                       `Welcome back! You are no longer AFK.\n\n` +
                       `_AFK mode has been turned off._`
@@ -84,12 +84,12 @@ export default {
             afkText += `_I will auto-reply to anyone who mentions you._\n`;
             afkText += `_Send any message to disable AFK mode._`;
             
-            await sock.sendMessage(sender, {
+            await sock.sendMessage(jid.chat, {
                 text: afkText,
                 mentions: [userJid]
             }, { quoted: message });
         } else {
-            await sock.sendMessage(sender, {
+            await sock.sendMessage(jid.chat, {
                 text: '❌ Failed to enable AFK mode. Please try again.'
             }, { quoted: message });
         }

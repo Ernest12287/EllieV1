@@ -1,6 +1,6 @@
 import config from '../config.js';
 import logging from '../logger.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
     name: 'groq',
     description: 'Chat with Groq AI (Ultra Fast - Llama 3)',
@@ -9,10 +9,10 @@ export default {
     aliases: ['ai', 'llama'],
     
     async execute(sock, message, args) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         
         if (!args.length) {
-            return await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: `❌ Please provide a question.\n💡 Usage: ${config.bot.preffix}groq <your question>` 
             });
         }
@@ -20,7 +20,7 @@ export default {
         const question = args.join(' ');
         
         try {
-            await sock.sendMessage(sender, { text: '⚡ Groq AI is thinking...' });
+            await sock.sendMessage(jid.chat, { text: '⚡ Groq AI is thinking...' });
             
             const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
                 method: 'POST',
@@ -46,7 +46,7 @@ export default {
             const aiResponse = data.choices[0]?.message?.content;
             if (!aiResponse) throw new Error('No response');
             
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: `🤖 *Groq AI*\n\n${aiResponse}\n\n━━━━━━━━━━━━━━\n_${config.bot.name}_`
             });
             
@@ -54,7 +54,7 @@ export default {
             
         } catch (error) {
             logging.error(`[GROQ] Error: ${error.message}`);
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: `❌ Groq AI unavailable.\n\n💡 Try: ${config.bot.preffix}gemini <question>` 
             });
         }

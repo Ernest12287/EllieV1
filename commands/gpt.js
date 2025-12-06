@@ -1,5 +1,5 @@
 import config from '../config.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
   name: 'gpt',
   aliases: ['chatgpt', 'ai'],
@@ -7,10 +7,10 @@ export default {
   usage: '.gpt <question>',
   category: 'AI',
   async execute(sock, message, args) {
-    const sender = message.key.remoteJid;
+    const jid = getChatJid(message);
     
     if (args.length < 1) {
-      return await sock.sendMessage(sender, { 
+      await sock.sendMessage(jid.chat, { 
         text: `┏━━━━━━━━━━━━━━━━━━┓
 ┃  🤖 *CHATGPT AI* 
 ┗━━━━━━━━━━━━━━━━━━┛
@@ -32,7 +32,7 @@ export default {
     const apiUrl = `https://api.giftedtech.co.ke/api/ai/gpt?apikey=gifted&q=${encodeURIComponent(question)}`;
 
     try {
-      await sock.sendMessage(sender, { 
+      await sock.sendMessage(jid.chat, { 
         text: `🤖 *ChatGPT is thinking...*
 
 💭 "${question}"
@@ -44,7 +44,7 @@ export default {
       const data = await response.json();
 
       if (data.success && data.result) {
-        await sock.sendMessage(sender, { 
+        await sock.sendMessage(jid.chat, { 
           text: `┏━━━━━━━━━━━━━━━━━━┓
 ┃  🤖 *CHATGPT* 
 ┗━━━━━━━━━━━━━━━━━━┛
@@ -55,13 +55,13 @@ ${data.result}
 _AI Assistant by OpenAI_ 🧠`
         }, { quoted: message });
       } else {
-        await sock.sendMessage(sender, { 
+        await sock.sendMessage(jid.chat, { 
           text: `❌ *Failed to get AI response!*`
         }, { quoted: message });
       }
     } catch (error) {
       console.error('GPT error:', error);
-      await sock.sendMessage(sender, { 
+      await sock.sendMessage(jid.chat, { 
         text: `❌ *Error!* ${error.message}`
       }, { quoted: message });
     }

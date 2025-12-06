@@ -1,7 +1,7 @@
 // ===== urban.js =====
 import config from '../config.js';
 import logging from '../logger.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
     name: 'urban',
     aliases: ['urbandictionary', 'slang'],
@@ -10,10 +10,10 @@ export default {
     category: 'Info',
     
     async execute(sock, message, args) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         
         if (args.length < 1) {
-            return await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: `╭━━━『 📖 URBAN DICTIONARY 』\n┃\n┃ ❌ Usage: ${config.bot.preffix}urban <term>\n┃\n┃ 💡 Example:\n┃ ${config.bot.preffix}urban yeet\n┃\n╰━━━━━━━━━━━━━━━⬣`
             });
         }
@@ -32,14 +32,14 @@ export default {
                 
                 const urbanText = `╭━━━『 📖 URBAN DICTIONARY 』\n┃\n┃ 📝 *${def.word}*\n┃\n┃━━━━━━━━━━━━━━\n┃\n┃ 💡 Definition:\n┃ ${definition}${definition.length >= 300 ? '...' : ''}\n┃\n┃ 📌 Example:\n┃ ${example}${example.length >= 200 ? '...' : ''}\n┃\n┃ 👍 ${def.thumbs_up} 👎 ${def.thumbs_down}\n┃\n╰━━━━━━━━━━━━━━━⬣`;
                 
-                await sock.sendMessage(sender, { text: urbanText });
+                await sock.sendMessage(jid.chat, { text: urbanText });
                 logging.success(`[URBAN] Definition sent for: ${term}`);
             } else {
-                await sock.sendMessage(sender, { text: `❌ No definition found for "${term}"` });
+                await sock.sendMessage(jid.chat, { text: `❌ No definition found for "${term}"` });
             }
         } catch (error) {
             logging.error(`[URBAN] Error: ${error.message}`);
-            await sock.sendMessage(sender, { text: '❌ Error!' });
+            await sock.sendMessage(jid.chat, { text: '❌ Error!' });
         }
     }
 };

@@ -1,5 +1,5 @@
 import config from '../config.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
     name: 'password',
     description: 'Generate secure passwords',
@@ -7,14 +7,14 @@ export default {
     category: 'Security',
     
     async execute(sock, message, args) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
 
         try {
             const length = parseInt(args[0]) || 12;
             const complexity = args[1]?.toLowerCase() || 'strong';
             
             if (length < 6 || length > 50) {
-                return await sock.sendMessage(sender, { 
+                await sock.sendMessage(jid.chat, { 
                     text: '❌ Password length must be between 6 and 50 characters.' 
                 });
             }
@@ -32,11 +32,11 @@ export default {
                                `• Enable 2FA when possible\n` +
                                `• Change passwords regularly`;
 
-            await sock.sendMessage(sender, { text: messageText });
+            await sock.sendMessage(jid.chat, { text: messageText });
 
         } catch (error) {
             console.error('Password error:', error);
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: '❌ Error generating password.' 
             });
         }

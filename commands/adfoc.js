@@ -1,15 +1,15 @@
 import config from '../config.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
   name: 'adfoc',
   description: 'Shorten URLs with AdFoc! 💰',
   usage: '.adfoc <url>',
   category: 'Tools',
   async execute(sock, message, args) {
-    const sender = message.key.remoteJid;
+    const jid = getChatJid(message);
     
     if (args.length < 1) {
-      return await sock.sendMessage(sender, { 
+      await sock.sendMessage(jid.chat, { 
         text: `┏━━━━━━━━━━━━━━━━━━┓
 ┃  💰 *ADFOC* 
 ┗━━━━━━━━━━━━━━━━━━┛
@@ -32,7 +32,7 @@ export default {
       const data = await response.json();
 
       if (data.success) {
-        await sock.sendMessage(sender, { 
+        await sock.sendMessage(jid.chat, { 
           text: `┏━━━━━━━━━━━━━━━━━━┓
 ┃  💰 *ADFOC RESULT* 
 ┗━━━━━━━━━━━━━━━━━━┛
@@ -49,12 +49,12 @@ export default {
 _Easy to share! Copy & paste_ ✨`
         }, { quoted: message });
       } else {
-        await sock.sendMessage(sender, { 
+        await sock.sendMessage(jid.chat, { 
           text: `❌ *Failed!* Invalid URL format.`
         }, { quoted: message });
       }
     } catch (error) {
-      await sock.sendMessage(sender, { 
+      await sock.sendMessage(jid.chat, { 
         text: `❌ *Error!* ${error.message}`
       }, { quoted: message });
     }

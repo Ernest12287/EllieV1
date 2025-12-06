@@ -1,5 +1,5 @@
 import config from '../config.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
   name: 'proxy',
   aliases: ['proxies', 'proxylist'],
@@ -7,11 +7,11 @@ export default {
   usage: '.proxy',
   category: 'Tools',
   async execute(sock, message, args) {
-    const sender = message.key.remoteJid;
+    const jid = getChatJid(message);
     const apiUrl = `https://api.giftedtech.co.ke/api/tools/proxy?apikey=gifted`;
 
     try {
-      await sock.sendMessage(sender, { 
+      await sock.sendMessage(jid.chat, { 
         text: `🌐 *Fetching proxies...*
 
 ⏳ Getting fresh proxy list...
@@ -47,15 +47,15 @@ _Please wait!_ ⚡`
         proxyText += `━━━━━━━━━━━━━━━━━━\n`;
         proxyText += `_Fresh Proxy List_ 🌐`;
 
-        await sock.sendMessage(sender, { text: proxyText }, { quoted: message });
+        await sock.sendMessage(jid.chat, { text: proxyText }, { quoted: message });
       } else {
-        await sock.sendMessage(sender, { 
+        await sock.sendMessage(jid.chat, { 
           text: `❌ *No proxies found!*`
         }, { quoted: message });
       }
     } catch (error) {
       console.error('Proxy error:', error);
-      await sock.sendMessage(sender, { 
+      await sock.sendMessage(jid.chat, { 
         text: `❌ *Error!* ${error.message}`
       }, { quoted: message });
     }

@@ -1,5 +1,5 @@
 import config from '../config.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
     name: 'movie',
     description: 'Search for movie information',
@@ -7,16 +7,16 @@ export default {
     category: 'Entertainment',
     
     async execute(sock, message, args) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         
         if (args.length < 1) {
-            return await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: `❌ Usage: ${config.bot.preffix}movie <movie title>\n\nExamples:\n• ${config.bot.preffix}movie "Inception"\n• ${config.bot.preffix}movie "The Godfather"\n• ${config.bot.preffix}movie "Avengers Endgame"`
             });
         }
 
         try {
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: '⏳ Searching movie database...' 
             });
 
@@ -53,23 +53,23 @@ export default {
                                  `📖 *Plot:* ${data.Plot}\n` +
                                  `🏆 *Awards:* ${data.Awards}`;
 
-                await sock.sendMessage(sender, { text: movieInfo });
+                await sock.sendMessage(jid.chat, { text: movieInfo });
                 
                 if (data.Poster && data.Poster !== 'N/A') {
-                    await sock.sendMessage(sender, {
+                    await sock.sendMessage(jid.chat, {
                         image: { url: data.Poster },
                         caption: `🎬 ${data.Title}`
                     });
                 }
             } else {
-                await sock.sendMessage(sender, { 
+                await sock.sendMessage(jid.chat, { 
                     text: '❌ Movie not found. Please check the title.' 
                 });
             }
 
         } catch (error) {
             console.error('Movie search error:', error);
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: '❌ Error searching movie database. Please try again.' 
             });
         }
@@ -89,12 +89,12 @@ export default {
                          `💵 *Budget:* $${this._formatMoney(details.budget)}\n` +
                          `💰 *Revenue:* $${this._formatMoney(details.revenue)}`;
 
-        await sock.sendMessage(sender, { text: movieInfo });
+        await sock.sendMessage(jid.chat, { text: movieInfo });
 
         // Send poster
         if (details.poster_path) {
             const posterUrl = `https://image.tmdb.org/t/p/w500${details.poster_path}`;
-            await sock.sendMessage(sender, {
+            await sock.sendMessage(jid.chat, {
                 image: { url: posterUrl },
                 caption: `🎬 ${details.title}`
             });

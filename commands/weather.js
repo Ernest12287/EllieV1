@@ -1,5 +1,5 @@
 import config from '../config.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
     name: 'weather',
     description: 'Get current weather information',
@@ -7,16 +7,16 @@ export default {
     category: 'Utility',
     
     async execute(sock, message, args) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         
         if (args.length < 1) {
-            return await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: `❌ Usage: ${config.bot.preffix}weather <city>\n\nExamples:\n• ${config.bot.preffix}weather London\n• ${config.bot.preffix}weather "New York"\n• ${config.bot.preffix}weather Tokyo, Japan`
             });
         }
 
         try {
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: '⏳ Fetching weather data...' 
             });
 
@@ -35,7 +35,7 @@ export default {
                 
                 if (fallbackResponse.ok) {
                     const data = await fallbackResponse.text();
-                    await sock.sendMessage(sender, { 
+                    await sock.sendMessage(jid.chat, { 
                         text: `🌤️ *Weather in ${location}*\n\n${data}` 
                     });
                     return;
@@ -54,13 +54,13 @@ export default {
                                `👁️ *Visibility:* ${(data.visibility / 1000).toFixed(1)} km\n` +
                                `📏 *Pressure:* ${data.main.pressure} hPa`;
 
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: weatherText 
             });
 
         } catch (error) {
             console.error('Weather error:', error);
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: '❌ Weather data not found. Please check the city name.' 
             });
         }

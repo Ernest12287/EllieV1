@@ -1,6 +1,6 @@
 import config from '../config.js';
 import logging from '../logger.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
     name: 'meme',
     aliases: ['memes', 'randommeme'],
@@ -9,10 +9,10 @@ export default {
     category: 'Fun',
     
     async execute(sock, message, args) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         
         try {
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: '😂 Finding a meme...' 
             });
 
@@ -26,21 +26,21 @@ export default {
             if (data && data.url) {
                 const caption = `╭━━━『 😂 MEME 』\n┃\n┃ 📝 *${data.title}*\n┃\n┃ 👤 u/${data.author}\n┃ ⬆️ ${data.ups} upvotes\n┃ 📍 r/${data.subreddit}\n┃\n╰━━━━━━━━━━━━━━━⬣\n\n_${config.bot.name}_`;
                 
-                await sock.sendMessage(sender, {
+                await sock.sendMessage(jid.chat, {
                     image: { url: data.url },
                     caption: caption
                 });
                 
                 logging.success(`[MEME] Sent meme from r/${data.subreddit}`);
             } else {
-                await sock.sendMessage(sender, { 
+                await sock.sendMessage(jid.chat, { 
                     text: '❌ Could not fetch meme. Try again!' 
                 });
             }
 
         } catch (error) {
             logging.error(`[MEME] Error: ${error.message}`);
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: '❌ Failed to fetch meme.' 
             });
         }

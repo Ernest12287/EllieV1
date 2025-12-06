@@ -1,6 +1,6 @@
 import config from '../config.js';
 import logging from '../logger.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 const getNumberFromJid = (jid) => {
     return jid.split('@')[0].split(':')[0];
 };
@@ -13,25 +13,25 @@ export default {
     adminOnly: true,
     
     async execute(sock, message) {
-        const sender = message.key.remoteJid;
+        const jid = getChatJid(message);
         const ownerNumber = config.creator.number;
         
         const senderCleanNumber = getNumberFromJid(sender);
         if (ownerNumber !== senderCleanNumber) {
-            await sock.sendMessage(sender, { text: config.error.notadmin });
+            await sock.sendMessage(jid.chat, { text: config.error.notadmin });
             return;
         }
         
         const text = message.message?.conversation || message.message?.extendedTextMessage?.text || '';
         
         if (!text.toLowerCase().includes('confirm')) {
-            await sock.sendMessage(sender, { 
+            await sock.sendMessage(jid.chat, { 
                 text: `⚠️ *BOT SHUTDOWN WARNING*\n\nTo confirm: ${config.bot.preffix}stop confirm` 
             });
             return;
         }
         
-        await sock.sendMessage(sender, { 
+        await sock.sendMessage(jid.chat, { 
             text: '🛑 *SHUTTING DOWN*\n\nGoodbye! 👋'
         });
         

@@ -1,5 +1,5 @@
 import config from '../config.js';
-
+import { getChatJid } from '../utils/jidHelper.js';
 export default {
   name: 'vision',
   aliases: ['visionai', 'describe'],
@@ -7,10 +7,10 @@ export default {
   usage: '.vision <image_url> <prompt>',
   category: 'AI',
   async execute(sock, message, args) {
-    const sender = message.key.remoteJid;
+    const jid = getChatJid(message);
     
     if (args.length < 2) {
-      return await sock.sendMessage(sender, { 
+      await sock.sendMessage(jid.chat, { 
         text: `┏━━━━━━━━━━━━━━━━━━┓
 ┃  👁️ *VISION AI* 
 ┗━━━━━━━━━━━━━━━━━━┛
@@ -32,7 +32,7 @@ export default {
     const apiUrl = `https://api.giftedtech.co.ke/api/ai/vision?apikey=gifted&url=${encodeURIComponent(imageUrl)}&prompt=${encodeURIComponent(prompt)}`;
 
     try {
-      await sock.sendMessage(sender, { 
+      await sock.sendMessage(jid.chat, { 
         text: `👁️ *Vision AI analyzing...*
 
 🖼️ Processing image...
@@ -46,7 +46,7 @@ _This may take a moment!_ 🤖`
       const data = await response.json();
 
       if (data.success && data.result) {
-        await sock.sendMessage(sender, { 
+        await sock.sendMessage(jid.chat, { 
           text: `┏━━━━━━━━━━━━━━━━━━┓
 ┃  👁️ *VISION AI RESULT* 
 ┗━━━━━━━━━━━━━━━━━━┛
@@ -64,7 +64,7 @@ ${data.result}
 _Vision AI Analysis_ 👁️`
         }, { quoted: message });
       } else {
-        await sock.sendMessage(sender, { 
+        await sock.sendMessage(jid.chat, { 
           text: `❌ *Vision AI Error!*
 
 Unable to analyze image. Make sure:
@@ -75,7 +75,7 @@ Unable to analyze image. Make sure:
       }
     } catch (error) {
       console.error('Vision AI error:', error);
-      await sock.sendMessage(sender, { 
+      await sock.sendMessage(jid.chat, { 
         text: `❌ *Error!* ${error.message}`
       }, { quoted: message });
     }
