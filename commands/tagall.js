@@ -1,7 +1,7 @@
 import config from '../config.js';
 import logging from '../logger.js';
 import { getChatJid, isUserAdmin } from '../utils/jidHelper.js';
-import { getChatJid } from '../utils/jidHelper.js';
+
 export default {
     name: 'tagall',
     description:'tag group members',

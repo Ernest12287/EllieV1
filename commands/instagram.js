@@ -25,6 +25,7 @@ export default {
 
 ✨ Download posts, reels & stories!`
       }, { quoted: message });
+      return; // THIS WAS MISSING - Code continued executing without URL
     }
 
     const url = args[0];

@@ -10,7 +10,7 @@ export default {
     category: 'Fun',
     
     async execute(sock, message, args) {
-        const sender = getChatJid(message)';
+        const sender = getChatJid(message);
         
         try {
             const apiUrl = 'https://opentdb.com/api.php?amount=1&type=multiple';
